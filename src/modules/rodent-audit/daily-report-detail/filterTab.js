@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
@@ -10,8 +9,6 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 
 import { WEB_ROUTES, tableColumnWidth, FUNCTION_NAMES } from 'constants/index';
-
-import { getFilterArrayOfListForKey } from 'utils';
 
 const FilterTab = (props) => {
   const { history, data, reportType, specialColumns } = props;
@@ -26,8 +23,6 @@ const FilterTab = (props) => {
   const [datePickerValue, setDatePickerValue] = useState();
   const [filterValue, setFilterValue] = useState();
   const filterRef = useRef(null);
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const searchData = [
     {
@@ -107,7 +102,7 @@ const FilterTab = (props) => {
     return {};
   };
 
-  // useEffect(() => {}, [debounceSearchText, searchType, sortValue, filterValue, datePickerValue]);
+  // useEffect(() => {}, [searchText, searchType, sortValue, filterValue, datePickerValue]);
 
   return (
     <>

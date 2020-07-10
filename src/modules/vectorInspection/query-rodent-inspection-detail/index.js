@@ -99,7 +99,7 @@ const QueryRodentInspectionDetail = (props) => {
   const { rccId } = queryString.parse(search);
 
   useEffect(() => {
-    document.title = 'NEA | Query Rodent Inspections Detail';
+    document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION_DETAIL.name}`;
     if (rccId) {
       getRodentInspectionDetailAction({ rccId });
     }
@@ -113,7 +113,7 @@ const QueryRodentInspectionDetail = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Query Rodent Inspections Detail" />
+        <NavBar active={WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION_DETAIL.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.INSPECTION_MANAGEMENT, WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION, WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION_DETAIL]} />
           <div className="paddingBottom50">

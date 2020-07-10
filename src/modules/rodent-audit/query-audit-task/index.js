@@ -1,21 +1,33 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
+import NewBreadCrumb from 'components/ui/breadcrumb';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import InPageLoading from 'components/common/inPageLoading';
-import { getFilterArrayOfListForKey } from 'utils';
 
-import { filterAuditTaskAction, getAuditTaskListAction, defaultFilterValue } from './action';
+import { getAuditTaskService } from 'services/rodent-audit';
+import { actionTryCatchCreator } from 'utils';
+
+const defaultFilterValue = {
+  searchText: '',
+  searchType: 'taskID',
+  datePickerValue: null,
+  filterValue: null,
+  sortValue: {
+    id: 'taskID',
+    label: 'Task ID',
+    desc: false,
+  },
+};
 
 const searchData = [
   {
@@ -45,7 +57,7 @@ const columns = [
   {
     Header: 'Task Type',
     accessor: 'taskTypeToBeDisplayed',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'Task ID',
@@ -56,11 +68,13 @@ const columns = [
     Header: 'Inspection Date',
     accessor: 'inspectionDate',
     minWidth: tableColumnWidth.lg,
+    sortType: 'date',
   },
   {
     Header: 'Audit Date',
     accessor: 'auditDate',
     minWidth: tableColumnWidth.lg,
+    sortType: 'date',
   },
   {
     Header: 'RO',
@@ -70,7 +84,7 @@ const columns = [
   {
     Header: 'GRC',
     accessor: 'grc',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'Division',
@@ -90,7 +104,7 @@ const columns = [
   {
     Header: 'Audit Status',
     accessor: 'auditStatus',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'Burrow Count Discrepancies',
@@ -105,19 +119,14 @@ const columns = [
   {
     Header: 'Show Cause/LD Status',
     accessor: 'causeStatus',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
 ];
 
 const QueryAuditTask = (props) => {
-  const {
-    getAuditTaskListAction,
-    filterAuditTaskAction,
-    ui: { isLoading },
-    data: { filteredList, list },
-    history,
-  } = props;
+  const { history } = props;
 
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
@@ -125,71 +134,65 @@ const QueryAuditTask = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 500);
-
   const title = WEB_ROUTES.RODENT_AUDIT.QUERY_AUDIT_TASK.name;
+
+  const getListing = useCallback(() => {
+    actionTryCatchCreator(
+      getAuditTaskService(),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.dailyReportList || [] });
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, []);
 
   useEffect(() => {
     document.title = `NEA | ${title}`;
-    getAuditTaskListAction().then(() => {
-      if (filterRef && filterRef.current) filterRef.current.onClear();
-    });
-  }, [getAuditTaskListAction, title]);
+    getListing();
+  }, [getListing, title]);
 
-  useEffect(() => {
-    filterAuditTaskAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-      datePickerValue,
-    });
-  }, [debounceSearchText, searchType, sortValue, filterValue, datePickerValue, filterAuditTaskAction]);
-
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'taskTypeToBeDisplayed',
-      title: 'Task Type',
-      values: getFilterArrayOfListForKey(list, 'taskTypeToBeDisplayed'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'grc',
-      title: 'GRC',
-      values: getFilterArrayOfListForKey(list, 'grc'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'ro',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'ro'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'causeStatus',
-      title: 'Show Cause/LD Status',
-      values: getFilterArrayOfListForKey(list, 'causeStatus'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'auditStatus',
-      title: 'Audit Status',
-      values: getFilterArrayOfListForKey(list, 'auditStatus'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'actionTaken',
-      title: 'Action Taken by Contractor',
-      values: getFilterArrayOfListForKey(list, 'actionTaken'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'taskTypeToBeDisplayed',
+        title: 'Task Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'grc',
+        title: 'GRC',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'ro',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'causeStatus',
+        title: 'Show Cause/LD Status',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'auditStatus',
+        title: 'Audit Status',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'actionTaken',
+        title: 'Action Taken by Contractor',
+      },
+    ],
+    [],
+  );
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo && rowInfo.row) {
@@ -209,6 +212,7 @@ const QueryAuditTask = (props) => {
       <div className="main-content workspace__main">
         <NavBar active={title} />
         <div className="contentWrapper">
+          <NewBreadCrumb page={[WEB_ROUTES.RODENT_AUDIT, WEB_ROUTES.RODENT_AUDIT.QUERY_AUDIT_TASK]} />
           <div className="main-title">
             <h1>{title}</h1>
           </div>
@@ -216,14 +220,14 @@ const QueryAuditTask = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="tabsContainer">
-            <DataTable data={filteredList} columns={columns} getTrProps={getTrProps} />
+            <FilteringDataTable data={apiState.list || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText, filterValue, sortValue, datePickerValue }} />
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -231,14 +235,10 @@ const QueryAuditTask = (props) => {
   );
 };
 
-const mapStateToProps = ({ rodentAuditReducers: { queryAuditTask } }, ownProps) => ({
+const mapStateToProps = (_reducers, ownProps) => ({
   ...ownProps,
-  ...queryAuditTask,
 });
 
-const mapDispatchToProps = {
-  getAuditTaskListAction,
-  filterAuditTaskAction,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(QueryAuditTask));

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -14,7 +13,7 @@ import TabNav from 'components/ui/tabnav';
 import InPageLoading from 'components/common/inPageLoading';
 import CustomModal from 'components/common/modal';
 import FloatingNumber from 'components/common/floating-number';
-import { getFilterArrayOfListForKey, EPI_COB1_FILTER_FUNC } from 'utils';
+import { EPI_COB1_FILTER_FUNC } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import Checkbox from 'components/common/checkbox';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
@@ -66,8 +65,6 @@ const ClaimTask = (props) => {
   const [tabItem, setTabItem] = useState(defaultFilterValue.tabItem);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [caseIds, setCaseIds] = useState([]);
   const isSelectAll = caseIds.length > 0 && caseIds.length === filteredList.length;
 
@@ -75,7 +72,7 @@ const ClaimTask = (props) => {
   const [modalData, setModalData] = useState({ isOpen: false, clusterId: '', clusterLocality: '', postalCode: '' });
 
   useEffect(() => {
-    document.title = 'NEA | Claim Tasks';
+    document.title = `NEA | ${WEB_ROUTES.CLAIM_TASK.name}`;
     claimTaskSearchAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
@@ -85,12 +82,12 @@ const ClaimTask = (props) => {
     claimTaskFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
       tabItem,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, claimTaskFilterAction, datePickerValue, tabItem]);
+  }, [searchText, searchType, sortValue, filterValue, claimTaskFilterAction, datePickerValue, tabItem]);
 
   const claimTasks = () => {
     const selectedTasks = list.filter(({ caseId = '' }) => caseIds.includes(caseId)).map(({ caseId, caseType }) => ({ caseId, caseType }));
@@ -196,26 +193,26 @@ const ClaimTask = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'caseType',
-      title: 'Disease',
-      values: getFilterArrayOfListForKey(list, 'caseType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'townCouncil',
-      title: 'Town Council',
-      values: getFilterArrayOfListForKey(list, 'townCouncil'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'caseType',
+        title: 'Disease',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'townCouncil',
+        title: 'Town Council',
+      },
+    ],
+    [],
+  );
 
   const tabNavMenu = [
     `Outside Cluster (${tabCount[0]})`,
@@ -258,16 +255,16 @@ const ClaimTask = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Claim Tasks" />
+        <NavBar active={WEB_ROUTES.CLAIM_TASK.name} />
         <div className="contentWrapper">
           <div className="main-title">
-            <h1>Claim Tasks</h1>
+            <h1>{WEB_ROUTES.CLAIM_TASK.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
@@ -304,7 +301,7 @@ const ClaimTask = (props) => {
               <div className="p-4">
                 <div className="text-left mb-2">Cluster ID: {modalData.clusterId}</div>
                 <div className="text-left mb-2">Cluster Locality: {modalData.clusterLocality}</div>
-                <ArcgisMap postalCode={modalData.postalCode} />
+                <ArcgisMap postalCode={modalData.postalCode} selectedLayer={1} />
               </div>
             }
           />

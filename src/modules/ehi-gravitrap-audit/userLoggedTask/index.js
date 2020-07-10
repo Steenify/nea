@@ -26,15 +26,15 @@ const boolOptions = [
 const premisesLOV = selectOptionsFromStringArray(['HDB', 'Landed']);
 
 const LoggedTask = ({ ui: { isLoading }, data: { list = [], nextTaskListGenerationDate = '' }, listingAction, getMastercodeAction, updateAction }) => {
+  const title = WEB_ROUTES.EHI_GRAVITRAP_AUDIT.USER_LOGGED_TASK.name;
   useEffect(() => {
-    document.title = 'NEA | Update Logged Task';
+    document.title = `NEA | ${title}`;
     listingAction();
     getMastercodeAction([MASTER_CODE.PREMISES_TYPE, MASTER_CODE.GROUP_BY]);
-  }, [getMastercodeAction, listingAction]);
+  }, [getMastercodeAction, listingAction, title]);
 
   const [modal, setModal] = useState({ isShow: false, action: () => {}, headerTitle: '', confirmTitle: '', cancelTitle: '' });
   const { ADD, EDIT, NONE } = ACTION_TYPES;
-  const title = WEB_ROUTES.EHI_GRAVITRAP_AUDIT.USER_LOGGED_TASK.name;
   const groupByLOV = selectOptionsFromStringArray(['Postal Code', 'Cluster ID', 'Sector ID']);
 
   const onSubmit = (values, { setSubmitting, resetForm }) => {

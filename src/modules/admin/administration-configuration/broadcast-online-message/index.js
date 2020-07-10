@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { Formik, Form } from 'formik';
 
 import Header from 'components/ui/header';
@@ -48,8 +48,6 @@ const BroadcastOnlineMessage = (props) => {
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
@@ -61,9 +59,9 @@ const BroadcastOnlineMessage = (props) => {
     filterListingAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, filterListingAction]);
+  }, [searchText, searchType, sortValue, filterListingAction]);
 
   const isEditing = editingList.filter((item) => item.action).length > 0;
 

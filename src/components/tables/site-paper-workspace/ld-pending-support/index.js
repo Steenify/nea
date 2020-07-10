@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -13,7 +12,7 @@ import { WEB_ROUTES, tableColumnWidth, GRAVITRAP_TASK_TYPE, FUNCTION_NAMES } fro
 
 import { viewLDPendingSupportService, supportLDService, collateSupportLDService } from 'services/site-paper-gravitrap-audit';
 import FloatingNumber from 'components/common/floating-number';
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc, monthIntToString } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc, monthIntToString } from 'utils';
 import CustomModal from 'components/common/modal';
 import { toast } from 'react-toastify';
 
@@ -46,18 +45,17 @@ const Table = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [taskIds, setTaskIds] = useState([]);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const [showRejectRemark, toggleShowRejectRemark] = useState(false);
   const [rejectionRemark, setRejectionRemark] = useState('');
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue };
+      const filterData = { sortValue, searchText, searchType, filterValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType],
+    [sortValue, filterValue, searchText, searchType],
   );
 
   const getListingAction = useCallback(() => {
@@ -246,26 +244,26 @@ const Table = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'auditRepotType',
-      title: 'Type',
-      values: getFilterArrayOfListForKey(tableData, 'auditRepotType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'divCode',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(tableData, 'divCode'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'mappedMonth',
-      title: 'Month',
-      values: getFilterArrayOfListForKey(tableData, 'mappedMonth'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'auditRepotType',
+        title: 'Type',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'divCode',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'mappedMonth',
+        title: 'Month',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -273,7 +271,7 @@ const Table = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           {/* <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} /> */}
-          <Filter ref={filterRef} className="navbar-nav ml-auto filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav ml-auto filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

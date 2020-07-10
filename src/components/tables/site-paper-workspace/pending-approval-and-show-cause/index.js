@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -13,7 +12,7 @@ import { WEB_ROUTES, tableColumnWidth, GRAVITRAP_TASK_TYPE, FUNCTION_NAMES } fro
 
 import { pendingApprovalListingService } from 'services/site-paper-gravitrap-audit';
 
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 const searchData = [
   {
@@ -52,15 +51,14 @@ const Table = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [datePickerValue, setDatePickerValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue, datePickerValue };
+      const filterData = { sortValue, searchText, searchType, filterValue, datePickerValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType, datePickerValue],
+    [sortValue, filterValue, searchText, searchType, datePickerValue],
   );
 
   const getListingAction = useCallback(() => {
@@ -175,38 +173,31 @@ const Table = (props) => {
     // },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'auditRepotType',
-      title: 'Type',
-      values: getFilterArrayOfListForKey(tableData, 'auditRepotType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'divCode',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(tableData, 'divCode'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'mappedWeek',
-      title: 'Eweek',
-      values: getFilterArrayOfListForKey(tableData, 'mappedWeek'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'auditor',
-      title: 'Auditor',
-      values: getFilterArrayOfListForKey(tableData, 'auditor'),
-    },
-    // {
-    //   type: FilterType.SEARCH,
-    //   id: 'status',
-    //   title: 'Status',
-    //   values: getFilterArrayOfListForKey(tableData, 'status'),
-    // },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'auditRepotType',
+        title: 'Type',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'divCode',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'mappedWeek',
+        title: 'Eweek',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'auditor',
+        title: 'Auditor',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -214,7 +205,7 @@ const Table = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper" data={columns.filter((item) => item?.show !== false)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

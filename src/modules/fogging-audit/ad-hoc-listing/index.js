@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -33,7 +32,7 @@ const AdHocFoggingAudit = (props) => {
     listFilterAction,
     history,
     ui: { isLoading },
-    data: { filteredList },
+    data: { filteredList, list },
   } = props;
 
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
@@ -42,8 +41,6 @@ const AdHocFoggingAudit = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const filterRef = useRef(null);
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.FOGGING_AUDIT.AD_HOC.name}`;
@@ -56,11 +53,11 @@ const AdHocFoggingAudit = (props) => {
     listFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [debounceSearchText, searchType, datePickerValue, sortValue, filterValue, listFilterAction]);
+  }, [searchText, searchType, datePickerValue, sortValue, filterValue, listFilterAction]);
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo) {
@@ -119,38 +116,41 @@ const AdHocFoggingAudit = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.COMPARE,
-      id: 'numOfAuditInPast12Months',
-      title: 'No. of Audits in the Past 12 Months',
-      values: [
-        {
-          title: 'Less than/equal to 5',
-          comparision: '<= 5',
-        },
-        {
-          title: 'More than 5',
-          comparision: '> 5',
-        },
-      ],
-    },
-    {
-      type: FilterType.COMPARE,
-      id: 'numOfAuditFailedInPast12Months',
-      title: 'No. of Failed Audits in the Past 12 Months',
-      values: [
-        {
-          title: 'Less than/equal to 5',
-          comparision: '<= 5',
-        },
-        {
-          title: 'More than 5',
-          comparision: '> 5',
-        },
-      ],
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.COMPARE,
+        id: 'numOfAuditInPast12Months',
+        title: 'No. of Audits in the Past 12 Months',
+        values: [
+          {
+            title: 'Less than/equal to 5',
+            comparision: '<= 5',
+          },
+          {
+            title: 'More than 5',
+            comparision: '> 5',
+          },
+        ],
+      },
+      {
+        type: FilterType.COMPARE,
+        id: 'numOfAuditFailedInPast12Months',
+        title: 'No. of Failed Audits in the Past 12 Months',
+        values: [
+          {
+            title: 'Less than/equal to 5',
+            comparision: '<= 5',
+          },
+          {
+            title: 'More than 5',
+            comparision: '> 5',
+          },
+        ],
+      },
+    ],
+    [],
+  );
 
   const dateSelectData = [
     {
@@ -190,7 +190,7 @@ const AdHocFoggingAudit = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

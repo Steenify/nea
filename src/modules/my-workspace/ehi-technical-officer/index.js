@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
@@ -8,14 +8,14 @@ import InPageLoading from 'components/common/inPageLoading';
 import Filter, { FilterType } from 'components/common/filter';
 import SearchBox from 'components/common/searchBox';
 import Sort from 'components/common/sort';
-import { useDebounce } from 'use-debounce';
-import { getFilterArrayOfListForKey } from 'utils';
+
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import Checkbox from 'components/common/checkbox';
 import FloatingNumber from 'components/common/floating-number';
 import CustomModal from 'components/common/modal';
 import { toast } from 'react-toastify';
 import { listAction, filterAction, defaultFilterValue, rejectAction, supportAction } from './action';
+import { getFilterArrayOfListForKey } from 'utils';
 
 const searchData = [
   {
@@ -51,7 +51,7 @@ const MyWorkspace = ({
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+
   const [activeTab, setTab] = useState('0');
   const [taskIds, setTaskIds] = useState([]);
 
@@ -70,8 +70,8 @@ const MyWorkspace = ({
   useEffect(() => {
     const temp = activeTab === '1';
     const filterNext = isUnitLeader ? (item) => (item.rejectFlag || false) === temp : null;
-    filterAction({ searchText: debounceSearchText, searchType, sortValue, filterValue, filterNext });
-  }, [debounceSearchText, searchType, filterValue, filterAction, sortValue, activeTab, isUnitLeader]);
+    filterAction({ searchText, searchType, sortValue, filterValue, filterNext });
+  }, [searchText, searchType, filterValue, filterAction, sortValue, activeTab, isUnitLeader]);
 
   const onSupport = () => {
     const selectedTask = list.filter(({ taskId }) => taskIds.includes(taskId));
@@ -221,39 +221,39 @@ const MyWorkspace = ({
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'constituency',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(
-        // list,
-        list.filter((item) => (item?.rejectFlag || false) === (activeTab === '1')),
-        'constituency',
-      ),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'week',
-      title: 'Eweek',
-      values: getFilterArrayOfListForKey(list, 'week'),
-      show: isAnalyst,
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'mappedMonth',
-      title: 'Month',
-      values: getFilterArrayOfListForKey(list, 'mappedMonth'),
-      show: isSectionLeader,
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'status',
-      title: 'Status',
-      values: getFilterArrayOfListForKey(list, 'status'),
-      show: isAnalyst,
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'constituency',
+        title: 'Division',
+        values: getFilterArrayOfListForKey(
+          // list,
+          list.filter((item) => (item?.rejectFlag || false) === (activeTab === '1')),
+          'constituency',
+        ),
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'week',
+        title: 'Eweek',
+        show: isAnalyst,
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'mappedMonth',
+        title: 'Month',
+        show: isSectionLeader,
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'status',
+        title: 'Status',
+        show: isAnalyst,
+      },
+    ],
+    [list, activeTab, isAnalyst, isSectionLeader],
+  );
 
   return (
     <>
@@ -267,7 +267,7 @@ const MyWorkspace = ({
       <div className="navbar navbar-expand filterMainWrapper">
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData.filter((item) => item.show !== false)} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData.filter((item) => item.show !== false)} original={list} />
           <Sort
             className="navbar-nav sortWrapper xs-paddingBottom20"
             data={columns.filter((item) => item.show !== false).map((item) => (item.Header === 'Month' ? { ...item, accessor: 'month' } : item))}

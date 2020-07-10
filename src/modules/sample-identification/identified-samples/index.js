@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
@@ -18,7 +18,6 @@ import CustomModal from 'components/common/modal';
 import FloatingNumber from 'components/common/floating-number';
 import DropBox from 'components/common/dropbox';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import { Form3Mode } from 'modules/details/form3/helper';
 
@@ -50,8 +49,6 @@ const ListOfSamplesIDed = (props) => {
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchText] = useState(defaultFilterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
 
   const [modalState, setModalState] = useState({ open: false, type: 'reason' });
@@ -72,10 +69,10 @@ const ListOfSamplesIDed = (props) => {
       searchType,
       sortValue,
       datePickerValue,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
     });
-  }, [searchType, debounceSearchText, datePickerValue, sortValue, filterValue, getSampleIdentifiedListFilterAction]);
+  }, [searchType, searchText, datePickerValue, sortValue, filterValue, getSampleIdentifiedListFilterAction]);
 
   const onCheckSample = (sampleId) => {
     const index = sampleIds.findIndex((id) => id === sampleId);
@@ -109,26 +106,26 @@ const ListOfSamplesIDed = (props) => {
     { label: 'Sample ID', value: 'sampleId' },
   ];
 
-  const filterValues = [
-    {
-      type: FilterType.SELECT,
-      title: 'RO',
-      id: 'regionOfficeCode',
-      values: getFilterArrayOfListForKey(samples, 'regionOfficeCode'),
-    },
-    {
-      type: FilterType.SEARCH,
-      title: 'Town Council',
-      id: 'townCouncil',
-      values: getFilterArrayOfListForKey(samples, 'townCouncil'),
-    },
-    {
-      type: FilterType.SEARCH,
-      title: 'Division',
-      id: 'division',
-      values: getFilterArrayOfListForKey(samples, 'division'),
-    },
-  ];
+  const filterValues = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        title: 'RO',
+        id: 'regionOfficeCode',
+      },
+      {
+        type: FilterType.SEARCH,
+        title: 'Town Council',
+        id: 'townCouncil',
+      },
+      {
+        type: FilterType.SEARCH,
+        title: 'Division',
+        id: 'division',
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
@@ -170,12 +167,12 @@ const ListOfSamplesIDed = (props) => {
     {
       Header: 'Town Council',
       accessor: 'townCouncil',
-      minWidth: tableColumnWidth.md,
+      minWidth: tableColumnWidth.lg,
     },
     {
       Header: 'Division',
       accessor: 'division',
-      minWidth: tableColumnWidth.md,
+      minWidth: tableColumnWidth.lg,
     },
     {
       Header: 'Address',
@@ -288,7 +285,7 @@ const ListOfSamplesIDed = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search" onChangeText={setSearchText} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangPickerSelect singleDatePicker className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" selectData={dateSelectData} onChange={setDatePickerValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" data={filterValues} onChange={setFilterValue} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" data={filterValues} onChange={setFilterValue} original={samples} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

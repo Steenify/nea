@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -14,7 +13,6 @@ import InPageLoading from 'components/common/inPageLoading';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import Footer from 'components/ui/footer';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { defaultFilterValue, getListAction, filterListAction } from './action';
 
 const OnSiteAuditResults = (props) => {
@@ -32,7 +30,7 @@ const OnSiteAuditResults = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
-  const [debounceSearchText] = useDebounce(searchText, 500);
+
   const filterRef = useRef(null);
 
   const searchData = [
@@ -118,26 +116,26 @@ const OnSiteAuditResults = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'regionOffice'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'nonCompliant',
-      title: 'Non-compliant',
-      values: getFilterArrayOfListForKey(list, 'nonCompliant'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'nonCompliant',
+        title: 'Non-compliant',
+      },
+    ],
+    [],
+  );
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo && rowInfo.row) {
@@ -158,13 +156,13 @@ const OnSiteAuditResults = (props) => {
 
   useEffect(() => {
     filterListAction({
-      searchText: debounceSearchText,
+      searchText,
       searchType,
       datePickerValue,
       sortValue,
       filterValue,
     });
-  }, [filterListAction, debounceSearchText, searchType, datePickerValue, sortValue, filterValue]);
+  }, [filterListAction, searchText, searchType, datePickerValue, sortValue, filterValue]);
 
   return (
     <>
@@ -182,7 +180,7 @@ const OnSiteAuditResults = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto" onChange={setDatePickerValue} selectData={dateSelectData} timePicker={false} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

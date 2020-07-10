@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -9,15 +8,25 @@ import Footer from 'components/ui/footer';
 import NewBreadCrumb from 'components/ui/breadcrumb';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import Filter, { FilterType } from 'components/common/filter';
 import InPageLoading from 'components/common/inPageLoading';
 
-import { getFilterArrayOfListForKey } from 'utils';
-
 import { tableColumnWidth, WEB_ROUTES, FUNCTION_NAMES } from 'constants/index';
 
-import { filterListAction, getListAction, defaultFilterValue } from './action';
+import { getAllTownCouncilFineRegimeListingService } from 'services/inspection-management/town-council-fine-regime';
+import { actionTryCatchCreator } from 'utils';
+
+export const defaultFilterValue = {
+  searchText: '',
+  searchType: 'tcCodeDesc',
+  filterValue: null,
+  sortValue: {
+    id: 'tcCodeDesc',
+    label: 'Town Council',
+    desc: false,
+  },
+};
 
 const searchData = [
   {
@@ -31,11 +40,13 @@ const columns = [
     Header: 'Year',
     accessor: 'year',
     minWidth: tableColumnWidth.sm,
+    sortType: 'number',
   },
   {
     Header: 'Month',
     accessor: 'month',
     minWidth: tableColumnWidth.md,
+    sortType: 'month',
   },
   {
     Header: 'Town Council',
@@ -69,60 +80,47 @@ const columns = [
 ];
 
 const QueryTownCouncilFineRegime = (props) => {
-  const {
-    getListAction,
-    filterListAction,
+  const { history, functionNameList } = props;
 
-    history,
-    ui: { isLoading },
-    data: { filteredList, list },
-    functionNameList,
-  } = props;
-
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+  const getListing = useCallback((params) => {
+    actionTryCatchCreator(
+      getAllTownCouncilFineRegimeListingService(params),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.tcRegimeDetailSummaryListingVoList || [] });
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, []);
 
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_TOWN_COUNCIL_FINE_REGIME.name}`;
-    getListAction({ isSupport: true }).then(() => {
-      if (filterRef && filterRef.current) filterRef.current.onClear();
-    });
-  }, [getListAction]);
+    getListing({ isSupport: true });
+  }, [getListing]);
 
-  useEffect(() => {
-    filterListAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-    });
-  }, [debounceSearchText, searchType, sortValue, filterValue, filterListAction]);
-
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'year',
-      title: 'Year',
-      values: getFilterArrayOfListForKey(list, 'year'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'month',
-      title: 'Month',
-      values: getFilterArrayOfListForKey(list, 'month'),
-    },
-    // {
-    //   type: FilterType.SELECT,
-    //   id: 'tcCodeDesc',
-    //   title: 'Town Council',
-    //   values: getFilterArrayOfListForKey(list, 'tcCodeDesc'),
-    // },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'year',
+        title: 'Year',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'month',
+        title: 'Month',
+      },
+    ],
+    [],
+  );
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo && rowInfo.row) {
@@ -151,14 +149,14 @@ const QueryTownCouncilFineRegime = (props) => {
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox name="barcode" placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="tabsContainer">
-            <DataTable data={filteredList} columns={columns} getTrProps={getTrProps} />
+            <FilteringDataTable data={apiState.list || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText, filterValue, sortValue }} />
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -166,15 +164,11 @@ const QueryTownCouncilFineRegime = (props) => {
   );
 };
 
-const mapStateToProps = ({ global, vectorInspectionReducers: { queryTownCouncilFineRegime } }, ownProps) => ({
+const mapStateToProps = ({ global }, ownProps) => ({
   ...ownProps,
-  ...queryTownCouncilFineRegime,
   functionNameList: global.data.functionNameList,
 });
 
-const mapDispatchToProps = {
-  filterListAction,
-  getListAction,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(QueryTownCouncilFineRegime));

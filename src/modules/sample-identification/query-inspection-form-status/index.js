@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+import moment from 'moment';
 import { connect } from 'react-redux';
 
 import Header from 'components/ui/header';
@@ -10,12 +10,31 @@ import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
 import InPageLoading from 'components/common/inPageLoading';
 import NewBreadCrumb from 'components/ui/breadcrumb';
-import DataTable from 'components/common/data-table';
-import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
+import FilteringDataTable from 'components/common/filtering-data-table';
+import DateRangePickerSelect, { DateRangePickerSelectMode } from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
-import { dateTimeStringFromDate, getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-import { formQueryStatusSearch, formQueryStatusFilter, defaultFilterValue } from './action';
+
+import { querySampleInspectionListingService } from 'services/sample-identification';
+import { dateTimeStringFromDate, actionTryCatchCreator } from 'utils';
+
+const defaultFilterValue = {
+  sortValue: {
+    id: 'breedingDetectionDate',
+    label: 'Breeding Detection Date',
+    desc: false,
+    sortType: 'date',
+  },
+  filterValue: null,
+  datePickerValue: {
+    selectedValue: 'breedingDetectionDate',
+    startDate: moment().subtract(30, 'days').startOf('day'),
+    endDate: moment().endOf('day'),
+    mode: DateRangePickerSelectMode.custom,
+  },
+  searchText: '',
+  searchType: 'address',
+};
 
 const searchData = [
   {
@@ -56,14 +75,9 @@ const dateSelectData = [
 ];
 
 const QueryInspectionFormStatus = (props) => {
-  const {
-    formQueryStatusSearchAction,
-    formQueryStatusFilterAction,
-    ui: { isLoading },
-    data: { filteredTaskList, taskList },
-    history,
-  } = props;
+  const { history } = props;
 
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
@@ -71,55 +85,57 @@ const QueryInspectionFormStatus = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
-  useEffect(() => {
-    document.title = `NEA | ${WEB_ROUTES.SAMPLE_IDENTIFICATION.QUERY_INSPECTION_FORM_STATUS.name}`;
+  const getListing = useCallback(() => {
     const startDate = datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate;
     const endDate = datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate;
     const selectValue = datePickerValue?.selectedValue || defaultFilterValue.datePickerValue.selectedValue;
-    const data = {};
-    data[`${selectValue}From`] = dateTimeStringFromDate(startDate);
-    data[`${selectValue}To`] = dateTimeStringFromDate(endDate);
-    formQueryStatusSearchAction(data).then(() => {
-      if (filterRef && filterRef.current) filterRef.current.onClear();
-    });
-  }, [formQueryStatusSearchAction, datePickerValue]);
+    const params = {};
+    params[`${selectValue}From`] = dateTimeStringFromDate(startDate);
+    params[`${selectValue}To`] = dateTimeStringFromDate(endDate);
+    actionTryCatchCreator(
+      querySampleInspectionListingService(params),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.inspections || [] });
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, [datePickerValue]);
 
   useEffect(() => {
-    formQueryStatusFilterAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-    });
-  }, [sortValue, searchType, debounceSearchText, filterValue, formQueryStatusFilterAction]);
+    document.title = `NEA | ${WEB_ROUTES.SAMPLE_IDENTIFICATION.QUERY_INSPECTION_FORM_STATUS.name}`;
+    getListing();
+  }, [getListing]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOfficeCode',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(taskList, 'regionOfficeCode'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'inspectionFormStatus',
-      title: 'Inspection Form Status',
-      values: getFilterArrayOfListForKey(taskList, 'inspectionFormStatus'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOfficeCode',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'inspectionFormStatus',
+        title: 'Inspection Form Status',
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
       Header: 'Breeding Detection Date',
       accessor: 'breedingDetectionDate',
       minWidth: tableColumnWidth.lg,
+      sortType: 'date',
     },
     {
       Header: 'Breeding Detection Time',
       accessor: 'breedingDetectionTime',
       minWidth: tableColumnWidth.lg,
+      sortType: 'time',
     },
     {
       Header: 'RO',
@@ -155,11 +171,13 @@ const QueryInspectionFormStatus = (props) => {
       Header: 'Inspection Date',
       accessor: 'inspectionDate',
       minWidth: tableColumnWidth.lg,
+      sortType: 'date',
     },
     {
       Header: 'Inspection Time',
       accessor: 'inspectionTime',
       minWidth: tableColumnWidth.lg,
+      sortType: 'time',
     },
     {
       Header: 'Inspection Form Status',
@@ -170,11 +188,13 @@ const QueryInspectionFormStatus = (props) => {
       Header: 'Last Updated Date',
       accessor: 'lastUpdateDate',
       minWidth: tableColumnWidth.lg,
+      sortType: 'date',
     },
     {
       Header: 'Last Updated Time',
       accessor: 'lastUpdateTime',
       minWidth: tableColumnWidth.lg,
+      sortType: 'time',
     },
     {
       Header: 'Form 3 ID',
@@ -218,16 +238,16 @@ const QueryInspectionFormStatus = (props) => {
                 data={datePickerValue}
                 resetValue={defaultFilterValue.datePickerValue}
               />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom15" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="paddingBottom50 tabsContainer">
             <div>
-              <DataTable data={filteredTaskList} columns={columns} />
+              <FilteringDataTable data={apiState.list || []} columns={columns} filterData={{ searchType, searchText, filterValue, sortValue }} />
             </div>
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -235,14 +255,10 @@ const QueryInspectionFormStatus = (props) => {
   );
 };
 
-const mapStateToProps = ({ sampleIdentificationReducers: { queryInspectionFormStatus } }, ownProps) => ({
+const mapStateToProps = (_reducers, ownProps) => ({
   ...ownProps,
-  ...queryInspectionFormStatus,
 });
 
-const mapDispatchToProps = {
-  formQueryStatusSearchAction: formQueryStatusSearch,
-  formQueryStatusFilterAction: formQueryStatusFilter,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(QueryInspectionFormStatus));

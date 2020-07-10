@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
@@ -45,8 +45,6 @@ const WidgetByRole = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.DASHBOARD_CONFIGURATION.WIDGET_BY_ROLE.name}`;
     resetReducerAction();
@@ -58,9 +56,9 @@ const WidgetByRole = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const columns = [
     {

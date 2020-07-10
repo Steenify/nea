@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
+
 import { withRouter } from 'react-router-dom';
 
 import NewBreadCrumb from 'components/ui/breadcrumb';
@@ -16,7 +16,7 @@ import Filter, { FilterType } from 'components/common/filter';
 
 import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
-import { exportExcel, getFilterArrayOfListForKey } from 'utils';
+import { exportExcel } from 'utils';
 
 import { manpowerListInfoAction, filterListAction, defaultFilterValue } from './action';
 
@@ -66,8 +66,6 @@ const ManpowerListInfo = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 500);
-
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.RODENT_AUDIT.MANPOWER_LIST_DETAIL.name}`;
 
@@ -82,32 +80,32 @@ const ManpowerListInfo = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
       filterValue,
     });
-  }, [debounceSearchText, searchType, sortValue, datePickerValue, filterValue, filterListAction]);
+  }, [searchText, searchType, sortValue, datePickerValue, filterValue, filterListAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'licenseType',
-      title: 'Type of Licence',
-      values: getFilterArrayOfListForKey(list, 'licenceType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'licenseStatus',
-      title: 'Licence Status',
-      values: getFilterArrayOfListForKey(list, 'licenseStatus'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'teamAllocationRO',
-      title: 'Team Allocation by RO',
-      values: getFilterArrayOfListForKey(list, 'teamAllocationRO'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'licenseType',
+        title: 'Type of Licence',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'licenseStatus',
+        title: 'Licence Status',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'teamAllocationRO',
+        title: 'Team Allocation by RO',
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
@@ -178,7 +176,7 @@ const ManpowerListInfo = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox name="barcode" placeholder="Search for" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom15" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import TabNav from 'components/ui/tabnav';
@@ -15,7 +14,6 @@ import InPageLoading from 'components/common/inPageLoading';
 import { connect } from 'react-redux';
 import DataTable from 'components/common/data-table';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
 import { sampleTaskSearch, sampleTaskFilter, claimSampleAction, resetClaimTaskReducer, defaultFilterValue } from './action';
@@ -50,21 +48,19 @@ const ClaimTask = (props) => {
   const [barcodeId, setBarcodeId] = useState('');
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [activeTabNav, setActiveTabNav] = useState('0');
   const [region, setRegion] = useState(defaultFilterValue.region);
 
   useEffect(() => {
-    document.title = 'NEA | Claim Tasks';
+    document.title = `NEA | ${WEB_ROUTES.CLAIM_TASK.name}`;
     sampleTaskSearchAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
   }, [sampleTaskSearchAction]);
 
   useEffect(() => {
-    sampleTaskFilterAction({ sortValue, region, searchText: debounceSearchText, searchType, filterValue, datePickerValue });
-  }, [sampleTaskFilterAction, sortValue, region, debounceSearchText, searchType, datePickerValue, filterValue]);
+    sampleTaskFilterAction({ sortValue, region, searchText, searchType, filterValue, datePickerValue });
+  }, [sampleTaskFilterAction, sortValue, region, searchText, searchType, datePickerValue, filterValue]);
 
   const navigateToDetail = (barcodeId, edit) => {
     resetClaimTaskReducerAction();
@@ -161,14 +157,16 @@ const ClaimTask = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'officerName',
-      title: 'Officer Name',
-      values: getFilterArrayOfListForKey(taskList, 'officerName'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'officerName',
+        title: 'Officer Name',
+      },
+    ],
+    [],
+  );
 
   const searchData = [
     { label: 'Sample ID', value: 'barcodeId' },
@@ -179,11 +177,11 @@ const ClaimTask = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Claim Tasks" />
+        <NavBar active={WEB_ROUTES.CLAIM_TASK.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.CLAIM_TASK]} />
           <div className="main-title">
-            <h1>Claim Tasks</h1>
+            <h1>{WEB_ROUTES.CLAIM_TASK.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
@@ -194,7 +192,7 @@ const ClaimTask = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} timePicker />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={taskList} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

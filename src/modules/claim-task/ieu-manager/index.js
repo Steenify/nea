@@ -94,7 +94,7 @@ const ClaimTask = (props) => {
   ];
 
   useEffect(() => {
-    document.title = 'NEA | Claim Tasks';
+    document.title = `NEA | ${WEB_ROUTES.CLAIM_TASK.name}`;
     form3CommonPoolAction().then(() => {});
   }, [form3CommonPoolAction]);
 
@@ -102,11 +102,11 @@ const ClaimTask = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Claim Tasks" />
+        <NavBar active={WEB_ROUTES.CLAIM_TASK.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.CLAIM_TASK]} />
           <div className="main-title">
-            <h1>Claim Tasks</h1>
+            <h1>{WEB_ROUTES.CLAIM_TASK.name}</h1>
           </div>
           <nav className="tab__main">
             <div className="tabsContainer">

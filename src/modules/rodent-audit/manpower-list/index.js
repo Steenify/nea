@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
@@ -67,8 +67,6 @@ const ManpowerList = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 500);
-
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.RODENT_AUDIT.MANPOWER_LIST.name}`;
     getListAction({});
@@ -78,10 +76,10 @@ const ManpowerList = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
     });
-  }, [debounceSearchText, searchType, sortValue, datePickerValue, filterListAction]);
+  }, [searchText, searchType, sortValue, datePickerValue, filterListAction]);
 
   const columns = [
     {

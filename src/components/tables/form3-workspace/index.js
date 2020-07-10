@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -12,7 +11,7 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { form3WorkspaceService } from 'services/inspection-management/form3';
-import { actionTryCatchCreator, filterFunc, sortFunc, getFilterArrayOfListForKey } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 import { Form3Mode } from 'modules/details/form3/helper';
 
@@ -66,15 +65,14 @@ const Form3WorkspaceTable = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [datePickerValue, setDatePickerValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue, datePickerValue };
+      const filterData = { sortValue, searchText, searchType, filterValue, datePickerValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType, datePickerValue],
+    [sortValue, filterValue, searchText, searchType, datePickerValue],
   );
 
   const getListing = useCallback(() => {
@@ -100,14 +98,16 @@ const Form3WorkspaceTable = (props) => {
     filterListingAction(listData);
   }, [filterListingAction, listData]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'form3Status',
-      title: 'Form 3 Status',
-      values: getFilterArrayOfListForKey(listData, 'form3Status'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'form3Status',
+        title: 'Form 3 Status',
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
@@ -175,7 +175,7 @@ const Form3WorkspaceTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={listData} />
           <Sort className="navbar-nav sortWrapper" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

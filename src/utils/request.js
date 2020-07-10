@@ -9,10 +9,10 @@ export { CancelToken };
 export const request = async ({ host = '', url = '', method = 'GET', auth, params = {}, data = {}, headers = {}, functionName = '', _token, cancelToken, isBatchServer, grantType }) => {
   const token = _token || (await getData('token'));
 
-  const isComingFromLogin = await getData('comingFromLogin');
-  if (isComingFromLogin === 'true') {
-    headers.LoginFlag = true;
-  }
+  // const isComingFromLogin = await getData('comingFromLogin');
+  // if (isComingFromLogin === 'true') {
+  //   headers.LoginFlag = true;
+  // }
 
   const HostAPI = process.env.REACT_APP_API || hostConfigs.development.HostAPI;
   const HostBatch = process.env.REACT_APP_BATCH || hostConfigs.development.HostBatch;
@@ -37,6 +37,7 @@ export const request = async ({ host = '', url = '', method = 'GET', auth, param
         Pragma: 'no-cache',
         Authorization: `${GRANTTYPE} ${token}`,
         FunctionName: functionName,
+        LoginFlag: true,
         ...headers,
       },
       cancelToken,

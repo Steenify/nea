@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { Formik, Form } from 'formik';
 
 import Header from 'components/ui/header';
@@ -72,12 +72,10 @@ const SystemConfiguration = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
-    document.title = 'NEA | Configuration Parameter Maintenance';
+    document.title = `NEA | ${WEB_ROUTES.ADMINISTRATION.CONFIGURATION_MAINTENANCE.name}`;
     resetReducerAction();
     getListingAction();
   }, [getListingAction, resetReducerAction]);
@@ -86,9 +84,9 @@ const SystemConfiguration = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const onSubmit = async (values, actions) => {
     const updatedItems = values.data.filter((item) => item.action === 'edit');
@@ -158,11 +156,11 @@ const SystemConfiguration = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Configuration Parameter Maintenance" />
+        <NavBar active={WEB_ROUTES.ADMINISTRATION.CONFIGURATION_MAINTENANCE.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.ADMINISTRATION, WEB_ROUTES.ADMINISTRATION.CONFIGURATION_MAINTENANCE]} />
           <div className="main-title">
-            <h1>Configuration Parameter Maintenance</h1>
+            <h1>{WEB_ROUTES.ADMINISTRATION.CONFIGURATION_MAINTENANCE.name}</h1>
           </div>
           <Formik enableReinitialize initialValues={{ data: filteredList }} validate={validate} onSubmit={onSubmit}>
             {({ dirty }) => {

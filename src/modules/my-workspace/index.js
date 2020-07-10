@@ -7,6 +7,7 @@ import NavBar from 'components/layout/navbar';
 import TabNav from 'components/ui/tabnav';
 import Footer from 'components/ui/footer';
 import Select from 'components/common/select';
+import NewBreadCrumb from 'components/ui/breadcrumb';
 
 import EHIWorkspaceTable from 'components/tables/ehi-workspace';
 
@@ -254,6 +255,7 @@ const MyWorkspace = React.memo(
         <div className="main-content workspace__main">
           <NavBar active="My Workspace" />
           <div className="contentWrapper">
+            <NewBreadCrumb page={[WEB_ROUTES.MY_WORKSPACE]} />
             <div className="main-title">
               <h1>My Workspace</h1>
             </div>

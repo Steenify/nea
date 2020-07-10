@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { Formik, Form } from 'formik';
 
 import Header from 'components/ui/header';
@@ -82,8 +82,6 @@ const DivisionMaintenance = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
@@ -103,9 +101,9 @@ const DivisionMaintenance = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const onSubmit = async (values, actions) => {
     const data = values.data.map((item) => ({

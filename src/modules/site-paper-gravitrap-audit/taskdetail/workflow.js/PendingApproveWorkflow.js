@@ -30,11 +30,9 @@ const PendingApprovalAndShowCauseWorkFlow = ({
   onSuccessCallbackToGoback = () => {},
   isManager,
 }) => {
-  const [caseInfo, setCaseInfo] = useState({});
+  const [caseInfo, setCaseInfo] = useState();
   const [activeTab, setActiveTab] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
-
-  const initialValues = initialValue(caseInfo);
 
   const getDetail = useCallback(() => {
     const onPending = () => setIsLoading(true);
@@ -230,66 +228,75 @@ const PendingApprovalAndShowCauseWorkFlow = ({
     }
   };
 
+  const initialValues = initialValue(caseInfo);
   return (
     <>
-      <Formik enableReinitialize initialValues={{ ...initialValues, approveRemarks: initialValues?.reviewerRemarks || '' }} validate={validate} onSubmit={onSubmit}>
-        {({ values: { auditRepotType = '', auditor = '', teamLead = '', displayTaskId = '', isApprove = '', displayLapse = '' }, isSubmitting, setFieldValue }) => {
-          const isPaperType = auditRepotType === GRAVITRAP_TASK_TYPE.PAPER;
-          const showSC = isApprove === true;
-          const isFinal = auditor.length * teamLead.length > 0;
-          const menu = showSC ? ['Trap Info', 'Contractor’s Maintenance Info', 'Audit', 'Show Cause'] : ['Trap Info', 'Contractor’s Maintenance Info', 'Audit'];
+      {caseInfo && (
+        <Formik
+          // enableReinitialize
+          initialValues={{ ...initialValues, approveRemarks: initialValues?.reviewerRemarks || '' }}
+          validate={validate}
+          onSubmit={onSubmit}>
+          {({ values, isSubmitting, setFieldValue }) => {
+            const { auditRepotType = '', auditor = '', teamLead = '', displayTaskId = '', isApprove, displayLapse = '' } = values;
+            const isPaperType = auditRepotType === GRAVITRAP_TASK_TYPE.PAPER;
+            const showSC = isApprove === true;
+            const isFinal = auditor.length * teamLead.length > 0;
+            const menu = showSC ? ['Trap Info', 'Contractor’s Maintenance Info', 'Audit', 'Show Cause'] : ['Trap Info', 'Contractor’s Maintenance Info', 'Audit'];
 
-          return (
-            <Form>
-              <div className="go-back">
-                <span onClick={() => goBack()}>
-                  Task Id: {displayTaskId}
-                  {isPaperType && displayLapse ? `, ${displayLapse}` : ''}
-                </span>
-                <>
-                  <button type="submit" className="btn btn-pri float-right" disabled={isSubmitting} onClick={() => setFieldValue('isDraft', false, false)}>
-                    Submit
-                  </button>
-                  {/* {(showSC || isPaperType) && ( */}
-                  <button type="submit" className="btn btn-sec float-right mr-3" disabled={isSubmitting} onClick={() => setFieldValue('isDraft', true, false)}>
-                    Save
-                  </button>
-                  {/* )} */}
-                </>
-              </div>
-              <div className="tabsContainer">
-                <SubmitErrorMessage />
-                {isPaperType ? (
+            return (
+              <Form>
+                <div className="go-back">
+                  <span onClick={() => goBack()}>
+                    Task Id: {displayTaskId}
+                    {isPaperType && displayLapse ? `, ${displayLapse}` : ''}
+                  </span>
                   <>
-                    <TabContent>
-                      <TrapInfo header="Trap Information" />
-                      <ShowCause isFinal={isManager} isEditable />
-                    </TabContent>
+                    <button type="submit" className="btn btn-pri float-right" disabled={isSubmitting} onClick={() => setFieldValue('isDraft', false, false)}>
+                      Submit
+                    </button>
+                    {/* {(showSC || isPaperType) && ( */}
+                    <button type="submit" className="btn btn-sec float-right mr-3" disabled={isSubmitting} onClick={() => setFieldValue('isDraft', true, false)}>
+                      Save
+                    </button>
+                    {/* )} */}
                   </>
-                ) : (
-                  <>
-                    <TabNav onToggleTab={setActiveTab} activeTab={activeTab} menu={menu} />
-                    <TabContent activeTab={activeTab}>
-                      <TabPane tabId="0">
-                        <TrapInfo />
-                      </TabPane>
-                      <TabPane tabId="1">
-                        <ContractorTab />
-                      </TabPane>
-                      <TabPane tabId="2">
-                        <AuditTab lapseLOV={lapseLOV} canShowApprove canEditApprove={isManager ? !isFinal : true} />
-                      </TabPane>
-                      <TabPane tabId="3">
-                        <ShowCause isFinal={isManager ? isFinal : false} isEditable />
-                      </TabPane>
-                    </TabContent>
-                  </>
-                )}
-              </div>
-            </Form>
-          );
-        }}
-      </Formik>
+                </div>
+                <div className="tabsContainer">
+                  <SubmitErrorMessage />
+                  {isPaperType ? (
+                    <>
+                      <TabContent>
+                        <TrapInfo header="Trap Information" />
+                        <ShowCause isFinal={isManager} isEditable />
+                      </TabContent>
+                    </>
+                  ) : (
+                    <>
+                      <TabNav onToggleTab={setActiveTab} activeTab={activeTab} menu={menu} />
+                      <TabContent activeTab={activeTab}>
+                        <TabPane tabId="0">
+                          <TrapInfo />
+                        </TabPane>
+                        <TabPane tabId="1">
+                          <ContractorTab />
+                        </TabPane>
+                        <TabPane tabId="2">
+                          <AuditTab lapseLOV={lapseLOV} canShowApprove canEditApprove={isManager ? !isFinal : true} />
+                        </TabPane>
+                        <TabPane tabId="3">
+                          <ShowCause isFinal={isManager ? isFinal : false} isEditable />
+                        </TabPane>
+                      </TabContent>
+                    </>
+                  )}
+                </div>
+              </Form>
+            );
+          }}
+        </Formik>
+      )}
+
       <InPageLoading isLoading={isLoading} />
     </>
   );

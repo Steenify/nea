@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+import moment from 'moment';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -10,7 +10,7 @@ import SearchBox from 'components/common/searchBox';
 import Sort from 'components/common/sort';
 import Filter, { FilterType } from 'components/common/filter';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import InPageLoading from 'components/common/inPageLoading';
 import CustomModal from 'components/common/modal';
 import Footer from 'components/ui/footer';
@@ -18,12 +18,28 @@ import FloatingNumber from 'components/common/floating-number';
 import { getMastercodeAction, MASTER_CODE } from 'store/actions';
 import { ReactComponent as Arrow } from 'assets/svg/arrow-receive-number.svg';
 
-import { dateTimeFormatString } from 'utils';
+import { dateTimeFormatString, actionTryCatchCreator } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
+import { getTrackListingService, saveUrgentSampleService } from 'services/vector-inspection';
 
 import './style.scss';
 
-import { getTrackListingAction, getTrackListingFilterAction, saveUrgentAction, defaultFilterValue } from './action';
+export const defaultFilterValue = {
+  searchText: '',
+  searchType: 'inspectionId',
+  datePickerValue: {
+    startDate: moment().startOf('day'),
+    endDate: moment().endOf('day'),
+    selectedValue: 'breeding',
+  },
+  filterValue: null,
+  sortValue: {
+    id: 'breedingDetectionDate',
+    label: 'Breeding Detection Date',
+    desc: false,
+    sortType: 'date',
+  },
+};
 
 const searchData = [
   {
@@ -68,18 +84,9 @@ const dateSelectData = [
 ];
 
 const TrackSampleStatus = (props) => {
-  const {
-    getTrackListingAction,
-    getTrackListingFilterAction,
-    saveUrgentAction,
-    trackSampleStatus: {
-      ui: { isLoading },
-      data: { filteredSamples, totalCollected, totalDeposited, totalSent, totalReceived },
-    },
-    history,
-    getMastercodeAction,
-    masterCodes,
-  } = props;
+  const { history, getMastercodeAction, masterCodes } = props;
+
+  const [apiState, setAPIState] = useState({ list: [], totalCollected: 0, totalDeposited: 0, totalSent: 0, totalReceived: 0, isLoading: false });
 
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
@@ -88,10 +95,7 @@ const TrackSampleStatus = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [sampleIds, setSampleIds] = useState([]);
-  // const isSelectAll = sampleIds.length > 0 && sampleIds.length === filteredSamples.length;
   const [urgentReason, setUrgentReason] = useState('');
   const [isModalOpen, toggleModal] = useState(false);
 
@@ -99,38 +103,48 @@ const TrackSampleStatus = (props) => {
     const startDate = datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate;
     const endDate = datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate;
     const dateType = datePickerValue?.selectedValue || defaultFilterValue.datePickerValue.selectedValue;
-    getTrackListingAction({
+    const params = {
       startDate: startDate.format(dateTimeFormatString),
       endDate: endDate.format(dateTimeFormatString),
       dateType,
-    }).then(() => {
-      if (filterRef && filterRef.current) filterRef.current.onClear();
-    });
-  }, [getTrackListingAction, datePickerValue]);
+    };
+    actionTryCatchCreator(
+      getTrackListingService(params),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+        setAPIState({
+          isLoading: false,
+          list: data.samples || [],
+          totalCollected: data.totalCollected,
+          totalDeposited: data.totalDeposited,
+          totalReceived: data.totalReceived,
+          totalSent: data.totalSent,
+        });
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, [datePickerValue]);
 
-  const saveUrgentSample = () => {
-    setSampleIds([]);
-    setUrgentReason('');
-    toggleModal(false);
-    saveUrgentAction({ barcodeIds: sampleIds, urgentReason }).then(() => {
-      getSamples();
-    });
-  };
+  const saveUrgentSample = useCallback(() => {
+    actionTryCatchCreator(
+      saveUrgentSampleService({ barcodeIds: sampleIds, urgentReason }),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      () => {
+        setSampleIds([]);
+        setUrgentReason('');
+        toggleModal(false);
+        getSamples();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, [sampleIds, urgentReason, getSamples]);
 
   useEffect(() => {
-    document.title = 'NEA | Track Sample Status';
+    document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.TRACK_SAMPLE_STATUS.name}`;
     getMastercodeAction([MASTER_CODE.SAMPLE_STATUS_CODE]);
     getSamples();
   }, [getMastercodeAction, getSamples]);
-
-  useEffect(() => {
-    getTrackListingFilterAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-    });
-  }, [debounceSearchText, searchType, sortValue, filterValue, getTrackListingFilterAction]);
 
   const getTrProps = (_, rowInfo) => {
     const props = {
@@ -148,100 +162,30 @@ const TrackSampleStatus = (props) => {
     return props;
   };
 
-  // const onCheckSample = sampleId => {
-  //   const index = sampleIds.findIndex(id => id === sampleId);
-  //   if (index > -1) {
-  //     sampleIds.splice(index, 1);
-  //   } else {
-  //     sampleIds.push(sampleId);
-  //   }
-  //   setSampleIds([...sampleIds]);
-  // };
-
-  // const onCheckAllSample = () => {
-  //   if (isSelectAll) {
-  //     filteredSamples.forEach(sample => {
-  //       const index = sampleIds.findIndex(id => id === sample.sampleId);
-  //       if (index > -1) sampleIds.splice(index, 1);
-  //     });
-  //     setSampleIds([...sampleIds]);
-  //   } else {
-  //     filteredSamples.forEach(sample => {
-  //       const index = sampleIds.findIndex(id => id === sample.sampleId);
-  //       if (index < 0) sampleIds.push(sample.sampleId);
-  //     });
-  //     setSampleIds([...sampleIds]);
-  //   }
-  // };
-
   const columns = [
-    // {
-    //   fixed: 'left',
-    //   minWidth: tableColumnWidth.xs,
-    //   Cell: cellInfo => (
-    //     <div>
-    //       <div className="custom-control custom-checkbox">
-    //         <input
-    //           type="checkbox"
-    //           className="custom-control-input"
-    //           id={`custom_search_check__${cellInfo.row.sampleId}`}
-    //           checked={sampleIds.includes(cellInfo.row.sampleId)}
-    //           onChange={() => onCheckSample(cellInfo.row.sampleId)}
-    //         />
-    //         <label className="custom-control-label" htmlFor={`custom_search_check__${cellInfo.row.sampleId}`} />
-    //       </div>
-    //     </div>
-    //   ),
-    //   Header: () => (
-    //     <div>
-    //       <div className="custom-control custom-checkbox">
-    //         <input
-    //           type="checkbox"
-    //           className="custom-control-input"
-    //           id="custom_search_check_all"
-    //           checked={isSelectAll}
-    //           onChange={() => onCheckAllSample()}
-    //         />
-    //         <label className="custom-control-label" htmlFor="custom_search_check_all" />
-    //       </div>
-    //     </div>
-    //   ),
-    // },
     {
       Header: 'Breeding Detection Date',
       accessor: 'breedingDetectionDate',
       minWidth: tableColumnWidth.lg,
+      sortType: 'date',
     },
     {
       Header: 'Breeding Detection Time',
       accessor: 'breedingDetectionTime',
       minWidth: tableColumnWidth.lg,
+      sortType: 'time',
     },
     {
       Header: 'Inspection ID',
       accessor: 'inspectionId',
-      Cell: (cellInfo) => (
-        <span
-          className="text-blue cursor-pointer"
-          // onClick={() => history.push(`${WEB_ROUTES.DETAILS.url}/inspection`, {id: cellInfo.row.inspectionId})}
-        >
-          {cellInfo.row.inspectionId}
-        </span>
-      ),
+      Cell: (cellInfo) => <span className="text-blue cursor-pointer">{cellInfo.row.inspectionId}</span>,
       minWidth: tableColumnWidth.lg,
     },
     {
       Header: 'Sample ID',
       accessor: 'sampleId',
       minWidth: tableColumnWidth.lg,
-      Cell: (cellInfo) => (
-        <span
-          className="text-blue cursor-pointer"
-          // onClick={() => history.push(`${WEB_ROUTES.DETAILS.url}/sample`, {id: cellInfo.row.sampleId})}
-        >
-          {cellInfo.row.sampleId}
-        </span>
-      ),
+      Cell: (cellInfo) => <span className="text-blue cursor-pointer">{cellInfo.row.sampleId}</span>,
     },
     {
       Header: 'Deposited by',
@@ -252,11 +196,13 @@ const TrackSampleStatus = (props) => {
       Header: 'Deposited Date',
       accessor: 'depositedDate',
       minWidth: tableColumnWidth.md,
+      sortType: 'date',
     },
     {
       Header: 'Deposited Time',
       accessor: 'depositedTime',
       minWidth: tableColumnWidth.md,
+      sortType: 'time',
     },
     {
       Header: 'Sent By',
@@ -267,11 +213,13 @@ const TrackSampleStatus = (props) => {
       Header: 'Sent Date',
       accessor: 'sendDate',
       minWidth: tableColumnWidth.md,
+      sortType: 'date',
     },
     {
       Header: 'Sent Time',
       accessor: 'sendTime',
       minWidth: tableColumnWidth.md,
+      sortType: 'time',
     },
     {
       Header: 'Received by',
@@ -282,11 +230,13 @@ const TrackSampleStatus = (props) => {
       Header: 'Received Date',
       accessor: 'receivedDate',
       minWidth: tableColumnWidth.md,
+      sortType: 'date',
     },
     {
       Header: 'Received Time',
       accessor: 'receivedTime',
       minWidth: tableColumnWidth.md,
+      sortType: 'time',
     },
     {
       Header: 'Status',
@@ -295,47 +245,50 @@ const TrackSampleStatus = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      title: 'Status',
-      id: 'sampleStatusDesc',
-      values: (masterCodes[MASTER_CODE.SAMPLE_STATUS_CODE] || []).map((item) => item.label),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        title: 'Status',
+        id: 'sampleStatusDesc',
+        values: (masterCodes[MASTER_CODE.SAMPLE_STATUS_CODE] || []).map((item) => item.label),
+      },
+    ],
+    [masterCodes],
+  );
 
   return (
     <>
       <Header />
 
       <div className="main-content">
-        <NavBar active="Track Sample Status" />
+        <NavBar active={WEB_ROUTES.INSPECTION_MANAGEMENT.TRACK_SAMPLE_STATUS.name} />
 
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.INSPECTION_MANAGEMENT, WEB_ROUTES.INSPECTION_MANAGEMENT.TRACK_SAMPLE_STATUS]} />
 
           <div className="main-title">
-            <h1>Track Sample Status</h1>
+            <h1>{WEB_ROUTES.INSPECTION_MANAGEMENT.TRACK_SAMPLE_STATUS.name}</h1>
           </div>
 
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" searchTypes={searchData} value={searchText} onChangeText={setSearchTextValue} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
 
           <div className="main-title">
             <div className="receive__numbers">
-              <FloatingNumber title="Collected By officer" number={totalCollected} />
+              <FloatingNumber title="Collected By officer" number={apiState.totalCollected} />
               <Arrow className="receive__arrow" />
-              <FloatingNumber title="Deposited By Officer" number={totalDeposited} />
+              <FloatingNumber title="Deposited By Officer" number={apiState.totalDeposited} />
               <Arrow className="receive__arrow" />
-              <FloatingNumber title="Sent to EHI" number={totalSent} />
+              <FloatingNumber title="Sent to EHI" number={apiState.totalSent} />
               <Arrow className="receive__arrow" />
-              <FloatingNumber title="Received by EHI" number={totalReceived} />
+              <FloatingNumber title="Received by EHI" number={apiState.totalReceived} />
             </div>
           </div>
 
@@ -352,9 +305,9 @@ const TrackSampleStatus = (props) => {
                 </div>
               </div>
             )}
-            <DataTable data={filteredSamples} columns={columns} getTrProps={getTrProps} />
+            <FilteringDataTable data={apiState.list || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText, filterValue, sortValue }} />
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
           <CustomModal
             isOpen={isModalOpen}
@@ -390,16 +343,12 @@ const TrackSampleStatus = (props) => {
   );
 };
 
-const mapStateToProps = ({ global, sampleIdentificationReducers: { trackSampleStatus } }) => ({
+const mapStateToProps = ({ global }) => ({
   global,
-  trackSampleStatus,
   masterCodes: global.data.masterCodes,
 });
 
 const mapDispatchToProps = {
-  getTrackListingAction,
-  getTrackListingFilterAction,
-  saveUrgentAction,
   getMastercodeAction,
 };
 

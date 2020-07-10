@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { dateStringFromDate, dateTimeStringFromDate, getFilterArrayOfListForKey } from 'utils';
-import { useDebounce } from 'use-debounce';
-import uuid from 'uuid/v4';
+import { dateStringFromDate, dateTimeStringFromDate, actionTryCatchCreator } from 'utils';
+import moment from 'moment';
+
 import Header from 'components/ui/header';
 import TabNav from 'components/ui/tabnav';
 import NavBar from 'components/layout/navbar';
@@ -11,15 +10,14 @@ import Footer from 'components/ui/footer';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
 import NewBreadCrumb from 'components/ui/breadcrumb';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import { connect } from 'react-redux';
 import { debounce } from 'lodash';
-import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
+import DateRangePickerSelect, { DateRangePickerSelectMode } from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 import InPageLoading from 'components/common/inPageLoading';
-import moment from 'moment';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-import { getBlockSummaryListAction, filterBlockSummaryAction, setDefaultValueAction } from './action';
+import { getBlockSummaryList } from 'services/vector-inspection';
 
 const searchDataDefault = [
   {
@@ -77,41 +75,60 @@ const columns = [
 
 const tabNavMenu = ['HDB/Condo', 'Landed'];
 
-const BlockSummary = ({ getBlockSummaryListAction, filterBlockSummaryAction, setDefaultValueAction, ui: { isLoading }, data: { defaultValue = {}, list = [], filteredList = [] }, history }) => {
-  const fromDateDefault = moment().add(-30, 'days');
-  const toDateDefault = moment();
+export const defaultFilterValue = {
+  sortValue: {
+    id: 'roadName',
+    label: 'Road Name',
+    desc: false,
+  },
+  filterValue: null,
+  searchText: '',
+  searchType: 'roadName',
+  datePickerValue: {
+    selectedValue: 'inspectionDateFrom',
+    startDate: moment().startOf('day').add(-30, 'days'),
+    endDate: moment().endOf('day'),
+    mode: DateRangePickerSelectMode.custom,
+  },
+  premiseType: 'BLOCK',
+};
 
-  const searchData = searchDataDefault.sort((a) => (a.value === defaultValue.searchType ? -1 : 1));
-  const [sortValue, setSortValue] = useState(defaultValue.sortValue);
-  const [searchType, setSearchTypeValue] = useState(defaultValue.searchType);
-  const [searchText, setSearchTextValue] = useState(defaultValue.searchText);
-  const [filterValue, setFilterValue] = useState(defaultValue.filterValue);
-  const [datePickerValue, setDatePickerValue] = useState({
-    startDate: moment(defaultValue?.datePicker?.startDateValueOf) || fromDateDefault,
-    endDate: moment(defaultValue?.datePicker?.endDateValueOf) || toDateDefault,
-  });
-  const [activeTab, setActiveTab] = useState(defaultValue.premiseType !== 'BLOCK' ? '1' : '0');
+const BlockSummary = (props) => {
+  const { history } = props;
+
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
+
+  const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
+  const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
+  const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
+  const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
+  const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
+  const [activeTab, setActiveTab] = useState(defaultFilterValue.premiseType !== 'BLOCK' ? '1' : '0');
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
-  const routeName = WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY.name;
+  const searchData = searchDataDefault.sort((a) => (a.value === defaultFilterValue.searchType ? -1 : 1));
+
+  const getListAction = useCallback(() => {
+    const params = {
+      inspectionDateFrom: dateTimeStringFromDate(datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate),
+      inspectionDateTo: dateTimeStringFromDate(datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate),
+      propertyType: activeTab === '1' ? 'LANDED' : 'BLOCK',
+    };
+
+    actionTryCatchCreator(
+      getBlockSummaryList(params),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.inspections || [] });
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, [activeTab, datePickerValue]);
 
   useEffect(() => {
     document.title = 'NEA | Block Summary';
-    getBlockSummaryListAction(
-      {
-        inspectionDateFrom: dateTimeStringFromDate(datePickerValue?.startDate || fromDateDefault),
-        inspectionDateTo: dateTimeStringFromDate(datePickerValue?.endDate || toDateDefault),
-        propertyType: activeTab === '1' ? 'LANDED' : 'BLOCK',
-      },
-      { filterValue, sortValue, searchText: debounceSearchText, searchType },
-    );
-  }, [getBlockSummaryListAction, activeTab, datePickerValue]);
-
-  useEffect(() => {
-    const param = { filterValue, sortValue, searchText: debounceSearchText, searchType };
-    filterBlockSummaryAction(param);
-  }, [sortValue, filterValue, debounceSearchText, filterBlockSummaryAction, searchType]);
+    getListAction();
+  }, [getListAction]);
 
   const onRowClick = (rowInfo) => {
     const block = rowInfo?.original;
@@ -119,22 +136,22 @@ const BlockSummary = ({ getBlockSummaryListAction, filterBlockSummaryAction, set
 
     const mapBlock = {
       ...block,
-      inspectionDateFrom: dateTimeStringFromDate(datePickerValue?.startDate || fromDateDefault),
-      inspectionDateTo: dateTimeStringFromDate(datePickerValue?.endDate || toDateDefault),
+      inspectionDateFrom: dateTimeStringFromDate(datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate),
+      inspectionDateTo: dateTimeStringFromDate(datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate),
     };
     const path = activeTab === '0' ? WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY_BLOCK_CHART.url : WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY_LANDED_DETAIL.url;
-    setDefaultValueAction({
-      searchText,
-      searchType,
-      datePicker: {
-        startDateValueOf: datePickerValue.startDate.valueOf(),
-        endDateValueOf: datePickerValue.endDate.valueOf(),
-      },
-      filterValue,
-      premiseType: activeTab === '0' ? 'BLOCK' : 'LANDED',
-      sortValue,
-    });
-    history.push(path, { block: mapBlock, parent: routeName, fromLatest: false });
+    // setDefaultValueAction({
+    //   searchText,
+    //   searchType,
+    //   datePicker: {
+    //     startDateValueOf: datePickerValue.startDate.valueOf(),
+    //     endDateValueOf: datePickerValue.endDate.valueOf(),
+    //   },
+    //   filterValue,
+    //   premiseType: activeTab === '0' ? 'BLOCK' : 'LANDED',
+    //   sortValue,
+    // });
+    history.push(path, { block: mapBlock, parent: WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY.name, fromLatest: false });
   };
 
   const getTrProps = (_state, rowInfo) => ({
@@ -144,47 +161,55 @@ const BlockSummary = ({ getBlockSummaryListAction, filterBlockSummaryAction, set
     },
   });
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'regionOffice'),
-      default: defaultValue?.filterValue?.regionOffice || [],
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-      default: defaultValue?.filterValue?.division || [],
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(list, 'premisesType'),
-      default: defaultValue?.filterValue?.premisesType || [],
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+        // default: filterValue?.regionOffice || [],
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+        // default: filterValue?.division || [],
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+        // default: filterValue?.premisesType || [],
+      },
+    ],
+    [],
+  );
 
-  const tableTitle = `Inspection Date: ${dateStringFromDate(datePickerValue?.startDate || fromDateDefault)} to ${dateStringFromDate(datePickerValue?.endDate || toDateDefault)}`;
+  const tableTitle = `Inspection Date: ${dateStringFromDate(datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate)} to ${dateStringFromDate(
+    datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate,
+  )}`;
 
   return (
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active={routeName} />
+        <NavBar active={WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.INSPECTION_MANAGEMENT, WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY]} />
           <div className="main-title">
-            <h1>Block Summary</h1>
+            <h1>{WEB_ROUTES.INSPECTION_MANAGEMENT.BLOCK_SUMMARY.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-              <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <DateRangePickerSelect
+                className="navbar-nav filterWrapper ml-auto xs-paddingBottom15"
+                onChange={setDatePickerValue}
+                selectData={dateSelectData}
+                data={datePickerValue}
+                resetValue={defaultFilterValue.datePickerValue}
+              />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
@@ -194,9 +219,16 @@ const BlockSummary = ({ getBlockSummaryListAction, filterBlockSummaryAction, set
             </div>
           </nav>
           <div className="tabsContainer">
-            <DataTable data={filteredList} columns={columns} getTrProps={getTrProps} title={tableTitle} showListPosition="end" key={uuid()} />
+            <FilteringDataTable
+              data={apiState.list || []}
+              columns={columns}
+              getTrProps={getTrProps}
+              title={tableTitle}
+              showListPosition="end"
+              filterData={{ searchType, searchText, filterValue, sortValue }}
+            />
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -204,15 +236,10 @@ const BlockSummary = ({ getBlockSummaryListAction, filterBlockSummaryAction, set
   );
 };
 
-const mapStateToProps = ({ vectorInspectionReducers: { blockSummary } }, ownProps) => ({
+const mapStateToProps = (_reducers, ownProps) => ({
   ...ownProps,
-  ...blockSummary,
 });
 
-const mapDispatchToProps = {
-  getBlockSummaryListAction,
-  filterBlockSummaryAction,
-  setDefaultValueAction,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(BlockSummary));

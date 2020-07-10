@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
@@ -16,7 +16,6 @@ import Footer from 'components/ui/footer';
 import CustomModal from 'components/common/modal';
 import DropBox from 'components/common/dropbox';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES, SUBMISSION_TYPE } from 'constants/index';
 
 import { defaultFilterValue, getListAction, filterListAction, uploadFoggingScheduleAction } from './action';
@@ -131,8 +130,6 @@ const FoggingSchedule = (props) => {
   const [modalState, setModalState] = useState({ open: false });
   const [uploadFileIds, setUploadFileIds] = useState([]);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const getList = useCallback(() => {
     getListAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
@@ -148,56 +145,52 @@ const FoggingSchedule = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [sortValue, searchType, debounceSearchText, filterValue, datePickerValue, filterListAction]);
+  }, [sortValue, searchType, searchText, filterValue, datePickerValue, filterListAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'regionOffice'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'foggingPurpose',
-      title: 'Purpose of Fogging',
-      values: getFilterArrayOfListForKey(list, 'foggingPurpose'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(list, 'premisesType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'product',
-      title: 'Product',
-      values: getFilterArrayOfListForKey(list, 'product'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'sourceReduction',
-      title: 'Source Reduction',
-      values: getFilterArrayOfListForKey(list, 'sourceReduction'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'notification',
-      title: 'Notification',
-      values: getFilterArrayOfListForKey(list, 'notification'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'foggingPurpose',
+        title: 'Purpose of Fogging',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'product',
+        title: 'Product',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'sourceReduction',
+        title: 'Source Reduction',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'notification',
+        title: 'Notification',
+      },
+    ],
+    [],
+  );
 
   // const getTrProps = (_state, rowInfo) => {
   //   if (rowInfo) {
@@ -252,7 +245,7 @@ const FoggingSchedule = (props) => {
                 ]}
                 data={datePickerValue}
               />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

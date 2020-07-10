@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -16,8 +15,6 @@ import CustomModal from 'components/common/modal';
 import Checkbox from 'components/common/checkbox';
 import { connect } from 'react-redux';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { form3CommonPoolAction, sampleMyWorkspaceFilter, defaultFilterValue, form3ClaimAction } from './action';
 
@@ -45,7 +42,6 @@ const ClaimTask = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const [isShowConfirmModal, setIsShowConfirmModal] = useState(false);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const [selectedTask, setSelectedTasks] = useState([]);
 
@@ -111,17 +107,19 @@ const ClaimTask = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOfficeCode',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(taskList, 'regionOfficeCode'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOfficeCode',
+        title: 'RO',
+      },
+    ],
+    [],
+  );
 
   useEffect(() => {
-    document.title = 'NEA | Claim Tasks';
+    document.title = `NEA | ${WEB_ROUTES.CLAIM_TASK.name}`;
     form3CommonPoolAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
@@ -130,28 +128,28 @@ const ClaimTask = (props) => {
   useEffect(() => {
     sampleMyWorkspaceFilterAction({
       sortValue,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
       searchType,
     });
-  }, [sampleMyWorkspaceFilterAction, sortValue, debounceSearchText, datePickerValue, filterValue, searchType]);
+  }, [sampleMyWorkspaceFilterAction, sortValue, searchText, datePickerValue, filterValue, searchType]);
 
   return (
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Claim Tasks" />
+        <NavBar active={WEB_ROUTES.CLAIM_TASK.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.CLAIM_TASK]} />
           <div className="main-title">
-            <h1>Claim Tasks</h1>
+            <h1>{WEB_ROUTES.CLAIM_TASK.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={taskList} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

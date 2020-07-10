@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
@@ -18,7 +17,6 @@ import FloatingNumber from 'components/common/floating-number';
 import Footer from 'components/ui/footer';
 import Checkbox from 'components/common/checkbox';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
 import { getUrgentSampleListingAction, getUrgentSampleListingFilterAction, defaultFilterValue, saveUrgentAction } from './action';
@@ -57,8 +55,6 @@ const UrgentSamples = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [sampleIds, setSampleIds] = useState([]);
   const isSelectAll = sampleIds.length > 0 && sampleIds.length === filteredSamples.length;
   const [urgentReason, setUrgentReason] = useState('');
@@ -79,11 +75,11 @@ const UrgentSamples = (props) => {
     getUrgentSampleListingFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, datePickerValue, getUrgentSampleListingFilterAction]);
+  }, [searchText, searchType, sortValue, filterValue, datePickerValue, getUrgentSampleListingFilterAction]);
 
   const getTrProps = (_, rowInfo) => {
     const props = {};
@@ -105,14 +101,16 @@ const UrgentSamples = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      title: 'Sample Status',
-      id: 'sampleStatus',
-      values: getFilterArrayOfListForKey(samples, 'sampleStatus'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        title: 'Sample Status',
+        id: 'sampleStatus',
+      },
+    ],
+    [],
+  );
 
   const saveUrgentSample = () => {
     if (!urgentReason) {
@@ -221,7 +219,7 @@ const UrgentSamples = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" searchTypes={searchData} value={searchText} onChangeText={setSearchTextValue} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper  min-width-300 " onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper  min-width-300 " onChange={setFilterValue} data={filterData} original={samples} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 import { connect } from 'react-redux';
 import moment from 'moment';
 
@@ -16,7 +15,7 @@ import DateRangePickerSelect, { DateRangePickerSelectMode } from 'components/com
 import Filter, { FilterType } from 'components/common/filter';
 import CustomModal from 'components/common/modal';
 
-import { dateTimeStringFromDate, getFilterArrayOfListForKey, actionTryCatchCreator } from 'utils';
+import { dateTimeStringFromDate, actionTryCatchCreator } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import { getQueryInspectionFormStatuses } from 'services/vector-inspection';
 
@@ -85,8 +84,6 @@ const QueryInspectionFormStatus = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const getListAction = useCallback(() => {
     const startDate = datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate;
     const endDate = datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate;
@@ -101,9 +98,9 @@ const QueryInspectionFormStatus = (props) => {
       (data) => {
         const temp = data.inspections || [];
         const list = [...temp];
-        for (let i = 0; i < 200; i += 1) {
-          list.push(...temp);
-        }
+        // for (let i = 0; i < 200; i += 1) {
+        //   list.push(...temp);
+        // }
         list.map((item) => {
           const form3IdList = (item.form3Id || '').split(',').filter((id) => id);
           return { ...item, form3IdList };
@@ -126,16 +123,14 @@ const QueryInspectionFormStatus = (props) => {
         type: FilterType.SELECT,
         id: 'regionOfficeCode',
         title: 'RO',
-        values: getFilterArrayOfListForKey(apiState.taskList, 'regionOfficeCode'),
       },
       {
         type: FilterType.SELECT,
         id: 'inspectionFormStatus',
         title: 'Inspection Form Status',
-        values: getFilterArrayOfListForKey(apiState.taskList, 'inspectionFormStatus'),
       },
     ],
-    [apiState.taskList],
+    [],
   );
 
   const columns = useMemo(
@@ -259,13 +254,13 @@ const QueryInspectionFormStatus = (props) => {
                 data={datePickerValue}
                 resetValue={defaultFilterValue.datePickerValue}
               />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.taskList || []} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom15" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="paddingBottom50 tabsContainer">
             <div>
-              <FilteringDataTable data={apiState.taskList || []} columns={columns} filterData={{ searchType, searchText: debounceSearchText, filterValue, sortValue }} />
+              <FilteringDataTable data={apiState.taskList || []} columns={columns} filterData={{ searchType, searchText, filterValue, sortValue }} />
             </div>
           </div>
           <InPageLoading isLoading={apiState.isLoading} />

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -43,10 +42,8 @@ const RoleFunctionMapping = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   useEffect(() => {
-    document.title = 'NEA | Function Role Mapping';
+    document.title = `NEA | ${WEB_ROUTES.AUTHENTICATION_AUTHORISATION.FUNCTION_ROLE_MAPPING.name}`;
     resetReducerAction();
     getListingAction();
   }, [getListingAction, resetReducerAction]);
@@ -55,9 +52,9 @@ const RoleFunctionMapping = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const columns = [
     {
@@ -99,11 +96,11 @@ const RoleFunctionMapping = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Function Role Mapping" />
+        <NavBar active={WEB_ROUTES.AUTHENTICATION_AUTHORISATION.FUNCTION_ROLE_MAPPING.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.AUTHENTICATION_AUTHORISATION, WEB_ROUTES.AUTHENTICATION_AUTHORISATION.FUNCTION_ROLE_MAPPING]} />
           <div className="main-title">
-            <h1>Function Role Mapping</h1>
+            <h1>{WEB_ROUTES.AUTHENTICATION_AUTHORISATION.FUNCTION_ROLE_MAPPING.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">

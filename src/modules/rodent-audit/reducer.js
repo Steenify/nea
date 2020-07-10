@@ -1,6 +1,5 @@
 import { combineReducers } from 'redux';
 import uploadReducer from './upload-findings/reducer';
-import queryAuditTask from './query-audit-task/reducer';
 import queryLateSubmission from './query-late-submission/reducer';
 import manpowerList from './manpower-list/reducer';
 import manpowerListDetail from './manpower-list-detail/reducer';
@@ -13,7 +12,6 @@ import optionalTaskLDConfiguration from './optional-task-ld-configuration/reduce
 
 export default combineReducers({
   uploadReducer,
-  queryAuditTask,
   queryLateSubmission,
   manpowerList,
   manpowerListDetail,

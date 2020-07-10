@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import NewBreadCrumb from 'components/ui/breadcrumb';
@@ -14,7 +14,6 @@ import Filter, { FilterType } from 'components/common/filter';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Checkbox from 'components/common/checkbox';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-import { getFilterArrayOfListForKey } from 'utils';
 import FloatingNumber from 'components/common/floating-number';
 import Select from 'components/common/select';
 import { getMastercodeAction, MASTER_CODE } from 'store/actions';
@@ -71,8 +70,6 @@ const EPIReassignTasks = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [caseIds, setCaseIds] = useState([]);
 
   const isSelectAll = caseIds.length > 0 && caseIds.length === filteredList.length;
@@ -80,7 +77,7 @@ const EPIReassignTasks = (props) => {
   const [isShowModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    document.title = 'NEA | Reassign Task';
+    document.title = `NEA | ${WEB_ROUTES.EPI_INVESTIGATION.REASSIGN_TASK.name}`;
     caseReassignListAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
@@ -89,8 +86,8 @@ const EPIReassignTasks = (props) => {
 
   useEffect(() => {
     setCaseIds([]);
-    taskFilterAction({ sortValue, searchType, searchText: debounceSearchText, filterValue, datePickerValue });
-  }, [debounceSearchText, searchText, sortValue, filterValue, taskFilterAction, datePickerValue, searchType]);
+    taskFilterAction({ sortValue, searchType, searchText, filterValue, datePickerValue });
+  }, [searchText, sortValue, filterValue, taskFilterAction, datePickerValue, searchType]);
 
   const columns = [
     {
@@ -197,33 +194,32 @@ const EPIReassignTasks = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'caseType',
-      title: 'Disease',
-      values: getFilterArrayOfListForKey(list, 'caseType'),
-    },
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'caseType',
+        title: 'Disease',
+      },
 
-    {
-      type: FilterType.SELECT,
-      id: 'cdc',
-      title: 'CDC',
-      values: getFilterArrayOfListForKey(list, 'cdc'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'premiseType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(list, 'premiseType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'assignedGroup',
-      title: 'Assigned Group',
-      values: getFilterArrayOfListForKey(list, 'assignedGroup'),
-    },
-  ];
+      {
+        type: FilterType.SELECT,
+        id: 'cdc',
+        title: 'CDC',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'premiseType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'assignedGroup',
+        title: 'Assigned Group',
+      },
+    ],
+    [],
+  );
 
   const reassignTask = () => {
     // const selectedTasks1 = list.filter(({ caseId = '' }) => caseIds.includes(caseId)).map(({ caseId, caseType, assignedGroupCode }) => ({ caseId, caseType, assignedGroup: assignedGroupCode }));
@@ -242,18 +238,18 @@ const EPIReassignTasks = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Reassign Tasks" />
+        <NavBar active={WEB_ROUTES.EPI_INVESTIGATION.REASSIGN_TASK.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.EPI_INVESTIGATION, WEB_ROUTES.EPI_INVESTIGATION.REASSIGN_TASK]} />
           <div className="paddingBottom50">
             <div className="main-title">
-              <h1>Reassign Tasks</h1>
+              <h1>{WEB_ROUTES.EPI_INVESTIGATION.REASSIGN_TASK.name}</h1>
             </div>
             <div className="navbar navbar-expand filterMainWrapper">
               <div className="collapse navbar-collapse" id="navbarSupportedContent">
                 <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
                 <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-                <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData.filter(({ values }) => values?.length > 0)} />
+                <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData.filter(({ values }) => values?.length > 0)} original={list} />
                 <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
               </div>
             </div>

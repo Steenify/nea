@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
+import _ from 'lodash';
+
 import { ReactComponent as SearchIcon } from 'assets/svg/search.svg';
 import Select from 'components/common/select';
 import './style.scss';
 
 class SearchBox extends Component {
-  // constructor(props) {
-  //   super(props);
-  // }
+  handleChangeInput = _.debounce((text) => {
+    const { onChangeText } = this.props;
+    onChangeText(text);
+  }, 500);
 
   componentDidMount() {
     const { autoFocus } = this.props;
@@ -16,7 +19,7 @@ class SearchBox extends Component {
   }
 
   render() {
-    const { className, onSubmit, onChangeText, placeholder, name, searchTypes, onChangeSearchType, value, disabled } = this.props;
+    const { className, onSubmit, placeholder, name, searchTypes, onChangeSearchType, value, disabled } = this.props;
     const searchInput = (
       <div className="searchWrapper mainSearch">
         <input
@@ -24,8 +27,8 @@ class SearchBox extends Component {
           name={name}
           className="searchTextfield"
           placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChangeText(e.target.value)}
+          defaultValue={value}
+          onChange={(e) => this.handleChangeInput(e.target.value)}
           ref={(input) => {
             this.inputRef = input;
           }}
@@ -50,19 +53,6 @@ class SearchBox extends Component {
                 }}
                 noRightCorner
               />
-              // <div className="form-group searchTypeList showList">
-              //   <select
-              //     className="form-control"
-              //     id="sel1"
-              //     onChange={e => onChangeSearchType && onChangeSearchType(e.target.value)}
-              //   >
-              //     {searchTypes.map((item, index) => (
-              //       <option key={`search_type_list__${index.toString()}`} value={item.value}>
-              //         {item.label}
-              //       </option>
-              //     ))}
-              //   </select>
-              // </div>
             )}
             {onSubmit ? (
               <form style={{ display: 'flex', flex: 1 }} onSubmit={onSubmit}>

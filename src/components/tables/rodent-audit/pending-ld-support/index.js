@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -14,7 +14,7 @@ import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { supportLDService } from 'services/rodent-audit';
 
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 const searchData = [
   {
@@ -152,20 +152,21 @@ const PendingLDSupportTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'taskTypeToBeDisplayed',
-      title: 'Task Type',
-      values: getFilterArrayOfListForKey(data, 'taskTypeToBeDisplayed'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'typeOfLapse',
-      title: 'Type of Lapse',
-      values: getFilterArrayOfListForKey(data, 'typeOfLapse'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'taskTypeToBeDisplayed',
+        title: 'Task Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'typeOfLapse',
+        title: 'Type of Lapse',
+      },
+    ],
+    [],
+  );
 
   const supportLDAction = (support) => {
     actionTryCatchCreator(
@@ -187,7 +188,7 @@ const PendingLDSupportTable = (props) => {
       <div className="navbar navbar-expand filterMainWrapper">
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={data} />
           <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

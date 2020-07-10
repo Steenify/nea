@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -15,7 +14,7 @@ import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { getWorkSpaceListingService } from 'services/epi-investigation/case';
 
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc, EPI_COB1_FILTER_FUNC } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc, EPI_COB1_FILTER_FUNC } from 'utils';
 
 import ArcgisMap from 'components/common/arcgis-map';
 
@@ -62,7 +61,7 @@ const EPIWorkspaceTable = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [datePickerValue, setDatePickerValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+
   const [tabItem, setTabItem] = useState({ index: '0', func: EPI_COB1_FILTER_FUNC.OUTSIDE_CLUSTER });
   const [tabCount, setTabCount] = useState([0, 0, 0, 0, 0, 0]);
 
@@ -70,14 +69,14 @@ const EPIWorkspaceTable = (props) => {
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue, tabItem, datePickerValue };
+      const filterData = { sortValue, searchText, searchType, filterValue, tabItem, datePickerValue };
       const filteredList = list
         .filter((item) => (showExtraFilter ? filterData.tabItem.func(item) : true))
         .filter((item) => filterFunc(item, filterData))
         .sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType, tabItem, datePickerValue, showExtraFilter],
+    [sortValue, filterValue, searchText, searchType, tabItem, datePickerValue, showExtraFilter],
   );
 
   const getListingAction = useCallback(() => {
@@ -179,26 +178,26 @@ const EPIWorkspaceTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'caseType',
-      title: 'Disease',
-      values: getFilterArrayOfListForKey(tableData, 'caseType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(tableData, 'division'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'townCouncil',
-      title: 'Town Council',
-      values: getFilterArrayOfListForKey(tableData, 'townCouncil'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'caseType',
+        title: 'Disease',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'townCouncil',
+        title: 'Town Council',
+      },
+    ],
+    [],
+  );
 
   const tabNavMenu = [
     `Outside Cluster (${tabCount[0]})`,
@@ -242,7 +241,7 @@ const EPIWorkspaceTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>
@@ -267,7 +266,7 @@ const EPIWorkspaceTable = (props) => {
           <div className="p-4">
             <div className="text-left mb-2">Cluster ID: {modalData.clusterId}</div>
             <div className="text-left mb-2">Cluster Locality: {modalData.clusterLocality}</div>
-            <ArcgisMap postalCode={modalData.postalCode} />
+            <ArcgisMap postalCode={modalData.postalCode} selectedLayer={1} />
           </div>
         }
       />

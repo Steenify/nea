@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -19,8 +18,6 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 
 import { tableColumnWidth, WEB_ROUTES, SUBMISSION_TYPE } from 'constants/index';
-
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { defaultFilterValue, filterListAction, uploadRodentOperationalSchedulesAction, opsTaskScheduleListingAction } from './action';
 
@@ -77,32 +74,31 @@ const OperationalSchedule = (props) => {
     opsTaskScheduleListingAction();
   }, [opsTaskScheduleListingAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'ro',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'ro'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'fileStatus',
-      title: 'Status',
-      values: getFilterArrayOfListForKey(list, 'fileStatus'),
-    },
-  ];
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'ro',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'fileStatus',
+        title: 'Status',
+      },
+    ],
+    [],
+  );
 
   useEffect(() => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
       filterValue,
     });
-  }, [sortValue, searchType, debounceSearchText, datePickerValue, filterValue, filterListAction]);
+  }, [sortValue, searchType, searchText, datePickerValue, filterValue, filterListAction]);
 
   const columns = [
     {
@@ -221,7 +217,7 @@ const OperationalSchedule = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
+
 import { TabContent, TabPane } from 'reactstrap';
 import { toast } from 'react-toastify';
 
@@ -19,7 +19,6 @@ import CustomModal from 'components/common/modal';
 
 import AuditResults from 'components/pages/fogging-audit/audit-results';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import GoBackButton from 'components/ui/go-back-button';
 import { defaultFilterValue, getDetailAction, submitOnsiteAuditScheduleMatchingAction, filterListAction } from './action';
 
@@ -42,21 +41,23 @@ const OnSiteAuditResultsDetail = (props) => {
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
-  const [debounceSearchText] = useDebounce(searchText, 500);
+
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
   const [scheduleId, setScheduleId] = useState();
   const [modalState, setModalState] = useState({ open: false, isMatched: false });
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(list, 'premisesType'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+      },
+    ],
+    [],
+  );
 
   const dateSelectData = [
     {
@@ -162,12 +163,12 @@ const OnSiteAuditResultsDetail = (props) => {
   useEffect(() => {
     if (detail) {
       filterListAction({
-        searchText: debounceSearchText,
+        searchText,
         searchType,
         filterValue,
       });
     }
-  }, [debounceSearchText, searchType, filterValue, filterListAction, detail]);
+  }, [searchText, searchType, filterValue, filterListAction, detail]);
 
   const submitMatching = (isMatched) => {
     submitOnsiteAuditScheduleMatchingAction(
@@ -231,7 +232,7 @@ const OnSiteAuditResultsDetail = (props) => {
                                   timePicker={false}
                                   data={datePickerValue}
                                 />
-                                <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} />
+                                <Filter ref={filterRef} className="navbar-nav filterWrapper" onChange={setFilterValue} data={filterData} original={list} />
                               </div>
                             </div>
                             <div className="">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
 import { difference } from 'lodash';
-import { useDebounce } from 'use-debounce';
+
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
@@ -11,7 +11,6 @@ import DataTable from 'components/common/data-table';
 import Filter, { FilterType } from 'components/common/filter';
 import SearchBox from 'components/common/searchBox';
 import { withRouter } from 'react-router-dom';
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 import Checkbox from 'components/common/checkbox';
 import FloatingNumber from 'components/common/floating-number';
@@ -41,19 +40,19 @@ const ClaimTask = ({ commonPoolListingAction, claimTaskAction, commonPoolFilterA
   const [selectedTask, setSelectedTasks] = useState([]);
   const [isSelectingAllTask, setIsSelectingAllTask] = useState([0]);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+
   const [isShowConfirmModal, setIsShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    document.title = 'NEA | Claim Tasks';
+    document.title = `NEA | ${WEB_ROUTES.CLAIM_TASK.name}`;
     commonPoolListingAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
   }, [commonPoolListingAction]);
 
   useEffect(() => {
-    commonPoolFilterAction({ sortValue, searchText: debounceSearchText, searchType, filterValue });
-  }, [debounceSearchText, searchType, filterValue, commonPoolFilterAction, sortValue]);
+    commonPoolFilterAction({ sortValue, searchText, searchType, filterValue });
+  }, [searchText, searchType, filterValue, commonPoolFilterAction, sortValue]);
 
   const checkSelectAll = (selectedTaskInput, tasks) => {
     if (selectedTaskInput.length === 0) {
@@ -156,41 +155,35 @@ const ClaimTask = ({ commonPoolListingAction, claimTaskAction, commonPoolFilterA
     },
   ];
 
-  const filterData = [
-    // {
-    //   type: FilterType.SEARCH,
-    //   id: 'premiseType',
-    //   title: 'Premise',
-    //   values: getFilterArrayOfListForKey(taskList, 'premiseType'),
-    // },
-    {
-      type: FilterType.SEARCH,
-      id: 'constituency',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(taskList, 'constituency'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'week',
-      title: 'Eweek',
-      values: getFilterArrayOfListForKey(taskList, 'week'),
-    },
-  ];
+  const filterData =
+    (() => [
+      {
+        type: FilterType.SEARCH,
+        id: 'constituency',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'week',
+        title: 'Eweek',
+      },
+    ],
+    []);
 
   return (
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Claim Tasks" />
+        <NavBar active={WEB_ROUTES.CLAIM_TASK.name} />
         <div className="contentWrapper">
           <div className="main-title">
-            <h1>Claim Tasks</h1>
+            <h1>{WEB_ROUTES.CLAIM_TASK.name}</h1>
           </div>
 
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox name="barcode" placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={taskList} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

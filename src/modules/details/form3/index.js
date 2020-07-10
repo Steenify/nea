@@ -181,7 +181,7 @@ const Form3Detail = (props) => {
   };
 
   useEffect(() => {
-    document.title = 'NEA | Form 3';
+    document.title = `NEA | ${WEB_ROUTES.DETAILS.FORM3.name}`;
     if (form3Id) {
       viewForm3DetailAction({ form3Id, accessMode });
       getMastercodeAction([MASTER_CODE.OFFENDER_ID_TYPE, MASTER_CODE.PREMISES_TYPE, MASTER_CODE.RO_CODE]);
@@ -208,7 +208,7 @@ const Form3Detail = (props) => {
         <Header />
 
         <div className="main-content">
-          <NavBar active="Form 3 Detail" />
+          <NavBar active={WEB_ROUTES.DETAILS.FORM3.name} />
 
           <div className="contentWrapper">
             <NewBreadCrumb page={[WEB_ROUTES.DETAILS.FORM3]} />

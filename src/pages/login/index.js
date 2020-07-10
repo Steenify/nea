@@ -24,13 +24,13 @@ const Login = (props) => {
   const onLoginSuccess = (token, comingFromLogin, frontEndName) => {
     storeData('token', token);
     resetGlobalReducerAction();
+    storeData('comingFromLogin', comingFromLogin);
     getAllFunctionsForRoleAction((functionNameList, fullName) => {
       // TODO: remove after 6097
       const userRole = { name: frontEndName || fullName, token };
       storeObject('userRole', userRole);
       updateUserRoleAction(userRole);
       storeData('functionNameList', functionNameList);
-      storeData('comingFromLogin', comingFromLogin);
       if (history) {
         history.push('/dashboard');
       }

@@ -1,3 +1,4 @@
+/* eslint-disable */
 const fastSort = require('fast-sort');
 const _ = require('lodash');
 const moment = require('moment');
@@ -72,56 +73,9 @@ const filterFunc = (item, filterData) => {
 };
 
 const sortFuncV2 = (a, b, sortValue) => {
-  const { id, desc, combineDateTime, isTimePeriod, sortType } = sortValue;
+  const { id, desc, sortType } = sortValue;
   const first = `${a[id] || ''}`.trim().toLowerCase();
   const second = `${b[id] || ''}`.trim().toLowerCase();
-  // if (sortType === 'date') {
-  //   let firstDate = null;
-  //   let secondDate = null;
-  //   if (combineDateTime) {
-  //     firstDate = moment(`${a[`${id}Date`]} ${a[`${id}Time`]}`, dateTimeFormatStrings, true);
-  //     secondDate = moment(`${b[`${id}Date`]} ${b[`${id}Time`]}`, dateTimeFormatStrings, true);
-  //   } else if (isTimePeriod) {
-  //     firstDate = moment(first.split(' to ')[0] || '', dateTimeFormatStrings, true);
-  //     secondDate = moment(second.split(' to ')[0] || '', dateTimeFormatStrings, true);
-  //   } else {
-  //     firstDate = moment(first, dateTimeFormatStrings, true);
-  //     secondDate = moment(second, dateTimeFormatStrings, true);
-  //   }
-
-  //   if (firstDate.isValid() && !secondDate.isValid()) {
-  //     return -1;
-  //   }
-  //   if (!firstDate.isValid() && secondDate.isValid()) {
-  //     return 1;
-  //   }
-  //   if (firstDate.isValid() && secondDate.isValid()) {
-  //     if (desc) {
-  //       return firstDate.format('x') < secondDate.format('x') ? -1 : 1;
-  //     }
-  //     return firstDate.format('x') > secondDate.format('x') ? -1 : 1;
-  //   }
-  // }
-  if (sortType === 'date') {
-    let firstDate = null;
-    let secondDate = null;
-    firstDate = moment(first, 'DD/MM/YYYY', true).format(dateTimeDBFormatString);
-    secondDate = moment(second, 'DD/MM/YYYY', true).format(dateTimeDBFormatString);
-    if (desc) {
-      return firstDate < secondDate ? -1 : 1;
-    }
-    return firstDate > secondDate ? -1 : 1;
-  }
-  if (sortType === 'time') {
-    let firstDate = null;
-    let secondDate = null;
-    firstDate = moment(first, ['hh:mm A'], true).format(dateTimeDBFormatString);
-    secondDate = moment(second, ['hh:mm A'], true).format(dateTimeDBFormatString);
-    if (desc) {
-      return firstDate < secondDate ? -1 : 1;
-    }
-    return firstDate > secondDate ? -1 : 1;
-  }
 
   if (sortType === 'number') {
     const firstNumber = Number(first);
@@ -132,8 +86,8 @@ const sortFuncV2 = (a, b, sortValue) => {
       }
       return firstNumber >= secondNumber ? 1 : -1;
     }
-    if (isNaN(firstNumber) && isFinite(secondNumber)) return 1;
-    if (isFinite(firstNumber) && isNaN(secondNumber)) return -1;
+    if (isNaN(firstNumber) && isFinite(secondNumber)) return -1;
+    if (isFinite(firstNumber) && isNaN(secondNumber)) return 1;
   }
 
   if (_.isBoolean(a[id]) && _.isBoolean(b[id])) {
@@ -145,8 +99,37 @@ const sortFuncV2 = (a, b, sortValue) => {
     return firstBool > secondBool ? 1 : -1;
   }
 
-  if (first && !second) return -1;
-  if (!first && second) return 1;
+  if (first && !second) return 1;
+  if (!first && second) return -1;
+
+  if (['date', 'time', 'dateTime', 'timePeriod', 'combineDateTime', 'month'].includes(sortType)) {
+    let format = '';
+    let finalFirst = first,
+      finalSecond = second;
+    if (sortType === 'month') format = 'MMMM';
+    if (sortType === 'date') format = 'DD/MM/YYYY';
+    if (sortType === 'time') format = 'hh:mm A';
+    if (sortType === 'dateTime') format = 'DD/MM/YYYY hh:mm A';
+    if (sortType === 'timePeriod') {
+      finalFirst = first.split(' to ')[0] || '';
+      finalSecond = second.split(' to ')[0] || '';
+      format = 'hh:mm A';
+    }
+    if (sortType === 'combineDateTime') {
+      finalFirst = `${a[`${id}Date`]} ${a[`${id}Time`]}`;
+      finalSecond = `${b[`${id}Date`]} ${b[`${id}Time`]}`;
+      format = 'DD/MM/YYYY hh:mm A';
+    }
+
+    let firstDate = null;
+    let secondDate = null;
+    firstDate = moment(finalFirst, format, true).format(dateTimeDBFormatString);
+    secondDate = moment(finalSecond, format, true).format(dateTimeDBFormatString);
+    if (desc) {
+      return firstDate < secondDate ? -1 : 1;
+    }
+    return firstDate > secondDate ? -1 : 1;
+  }
 
   if (desc) {
     return first < second ? -1 : 1;

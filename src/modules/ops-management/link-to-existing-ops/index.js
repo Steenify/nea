@@ -34,7 +34,7 @@ const LinkExistingOperation = (props) => {
   const linkAllowed = functionNameList.includes(FUNCTION_NAMES.linktoOps);
 
   useEffect(() => {
-    document.title = 'NEA | Link To Existing Operations';
+    document.title = `NEA | ${WEB_ROUTES.OPS_AREA.LINK_TO_EXISTING_OPS.name}`;
     if (state?.id && linkAllowed) {
       getExistingOperationsAction({
         status: 'true',
@@ -78,10 +78,10 @@ const LinkExistingOperation = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Link To Existing Operations" />
+        <NavBar active={WEB_ROUTES.OPS_AREA.LINK_TO_EXISTING_OPS.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.OPS_AREA, WEB_ROUTES.OPS_AREA.LANDING_PAGE, WEB_ROUTES.OPS_AREA.OPERATION_DETAIL, WEB_ROUTES.OPS_AREA.LINK_TO_EXISTING_OPS]} />
-          <GoBackButton onClick={() => history.goBack()} title="Link To Existing Operations">
+          <GoBackButton onClick={() => history.goBack()} title={WEB_ROUTES.OPS_AREA.LINK_TO_EXISTING_OPS.name}>
             <button type="button" className="btn btn-pri ml-auto" onClick={checkLinkOperation}>
               Apply
             </button>

@@ -39,24 +39,10 @@ class CustomInput extends PureComponent {
 
 const SingleDatePicker = (props) => {
   const { className, date, onChangeDate, placeholder, minDate, maxDate, inline, monthsShown, portalId, showReset = true } = props;
-  // const [isUsingPortal, setUsingPortal] = useState(window.innerWidth < 576 || window.innerHeight < 800);
 
   const _date = moment.isMoment(date) ? date.toDate() : date;
   const _minDate = moment.isMoment(minDate) ? minDate.toDate() : minDate || moment().add(-process.env.REACT_APP_REPORT_PAST_YEAR, 'years').toDate();
   const _maxDate = moment.isMoment(maxDate) ? maxDate.toDate() : maxDate || moment().add(process.env.REACT_APP_REPORT_PAST_YEAR, 'years').toDate();
-
-  // useEffect(() => {
-  //   function handleResize() {
-  //     const { innerWidth, innerHeight } = window;
-  //     const result = innerWidth < 576 || innerHeight < 800;
-  //     if (result !== isUsingPortal) {
-  //       setUsingPortal(result);
-  //     }
-  //   }
-
-  //   window.addEventListener('resize', handleResize);
-  //   return () => window.removeEventListener('resize', handleResize);
-  // }, [isUsingPortal]);
 
   const handleDateChange = (date) => {
     if (!date) {

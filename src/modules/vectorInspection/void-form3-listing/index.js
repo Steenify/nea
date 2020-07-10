@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -113,8 +112,6 @@ const VoidForm3 = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const getListAction = useCallback(() => {
     const onPending = () => setAPIState((prev) => ({ ...prev, isLoading: true }));
     const onSuccess = (data) => {
@@ -162,7 +159,7 @@ const VoidForm3 = (props) => {
             </div>
           </div>
           <div className="tabsContainer">
-            <FilteringDataTable data={apiState.taskList || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText: debounceSearchText, sortValue, datePickerValue }} />
+            <FilteringDataTable data={apiState.taskList || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText, sortValue, datePickerValue }} />
           </div>
           <InPageLoading isLoading={apiState.isLoading} />
           <Footer />

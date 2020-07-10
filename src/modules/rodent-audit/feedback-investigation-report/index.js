@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
+import NewBreadCrumb from 'components/ui/breadcrumb';
 import Footer from 'components/ui/footer';
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -120,16 +120,14 @@ const FeedbackInvestigationReport = (props) => {
     feedbackReportListingAction();
   }, [feedbackReportListingAction]);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   useEffect(() => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
     });
-  }, [sortValue, searchType, debounceSearchText, datePickerValue, filterListAction]);
+  }, [sortValue, searchType, searchText, datePickerValue, filterListAction]);
 
   return (
     <>
@@ -138,6 +136,7 @@ const FeedbackInvestigationReport = (props) => {
       <div className="main-content workspace__main">
         <NavBar active={WEB_ROUTES.RODENT_AUDIT.FEEDBACK_INVESTIGATION_REPORT.name} />
         <div className="contentWrapper">
+          <NewBreadCrumb page={[WEB_ROUTES.RODENT_AUDIT, WEB_ROUTES.RODENT_AUDIT.FEEDBACK_INVESTIGATION_REPORT]} />
           <div className="main-title">
             <h1>{WEB_ROUTES.RODENT_AUDIT.FEEDBACK_INVESTIGATION_REPORT.name}</h1>
 

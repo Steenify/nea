@@ -9,7 +9,7 @@ import ShowList from 'components/common/showlist';
 
 import 'components/common/inPageLoading/style.scss';
 
-import Worker from 'utils/filter.worker';
+import Worker from 'utils/workers/filter.worker';
 import { dateTimeStringFromDate } from 'utils';
 
 const worker = new Worker();
@@ -46,21 +46,21 @@ const FilteringDataTable = (props) => {
   };
 
   useEffect(() => {
-    if (!_.isEqual(filterData, prevFilterData) || !_.isEqual(prevData, data)) {
+    const tempFilterData = _.cloneDeep(filterData);
+    if (!_.isEqual(tempFilterData, prevFilterData) || !_.isEqual(prevData, data)) {
       setState((prev) => ({ ...prev, isFiltering: true }));
-      if (filterData.datePickerValue) {
-        const { startDate, endDate } = filterData.datePickerValue;
+      if (tempFilterData.datePickerValue) {
+        const { startDate, endDate } = tempFilterData.datePickerValue;
         if (startDate) {
-          filterData.datePickerValue.startDate = dateTimeStringFromDate(startDate);
+          tempFilterData.datePickerValue.startDate = dateTimeStringFromDate(startDate);
         }
         if (endDate) {
-          filterData.datePickerValue.endDate = dateTimeStringFromDate(endDate);
+          tempFilterData.datePickerValue.endDate = dateTimeStringFromDate(endDate);
         }
       }
-      console.log('FilteringDataTable -> filterData', filterData);
-      worker.postMessage({ list: data, filterData });
+      worker.postMessage({ list: data, filterData: tempFilterData });
     }
-    prevFilterData = filterData;
+    prevFilterData = tempFilterData;
     prevData = data;
   }, [data, filterData]);
 
@@ -69,8 +69,9 @@ const FilteringDataTable = (props) => {
       setState((prev) => ({ ...prev, isFiltering: false, filteredList: e.data, page: 0 }));
     };
     worker.addEventListener('message', setList);
-
-    // return worker.removeEventListener('message', setList);
+    return () => {
+      worker.removeEventListener('message', setList);
+    };
   }, []);
 
   const finalPageSize = Math.max(Math.min(state.pageSize, data.length), defaultPageSize || 3);

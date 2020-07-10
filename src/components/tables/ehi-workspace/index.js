@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -13,7 +12,7 @@ import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { getSampleIdentificationMyWorkspace } from 'services/sample-identification';
 
-import { actionTryCatchCreator, filterFunc, sortFunc, getFilterArrayOfListForKey } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 const EHIWorkspaceTable = (props) => {
   const {
@@ -29,18 +28,17 @@ const EHIWorkspaceTable = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, datePickerValue, filterValue };
+      const filterData = { sortValue, searchText, searchType, datePickerValue, filterValue };
       const urgentList = list.filter((item) => item.isUrgentCase).sort((a, b) => sortFunc(a, b, sortValue));
       const lateList = list.filter((item) => !item.isUrgentCase && item.isPrioritized).sort((a, b) => sortFunc(a, b, sortValue));
       const normalList = list.filter((item) => !item.isUrgentCase && !item.isPrioritized).sort((a, b) => sortFunc(a, b, sortValue));
       const newList = [...urgentList, ...lateList, ...normalList].filter((item) => filterFunc(item, filterData));
       setFilteredTableData(newList);
     },
-    [sortValue, filterValue, datePickerValue, debounceSearchText, searchType],
+    [sortValue, filterValue, datePickerValue, searchText, searchType],
   );
 
   const getListingAction = useCallback(() => {
@@ -131,14 +129,16 @@ const EHIWorkspaceTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOfficeCode',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(tableData, 'regionOfficeCode'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOfficeCode',
+        title: 'RO',
+      },
+    ],
+    [],
+  );
 
   const searchData = [
     { label: 'Sample ID', value: 'barcodeId' },
@@ -151,7 +151,7 @@ const EHIWorkspaceTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search Sample ID" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

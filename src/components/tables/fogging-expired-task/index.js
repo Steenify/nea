@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import moment from 'moment';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import Sort from 'components/common/sort';
@@ -18,7 +17,7 @@ import SingleDatePickerV2 from 'components/common/single-date-picker';
 import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { getFoggingWorkspaceListingService, pickNewFoggingAuditDateService } from 'services/fogging-audit';
-import { actionTryCatchCreator, dateStringFromDate, randomDate, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, dateStringFromDate, randomDate, filterFunc, sortFunc } from 'utils';
 
 const searchData = [
   {
@@ -62,17 +61,16 @@ const FoggingExpiredTaskTable = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [datePickerValue, setDatePickerValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const [modalState, setModalState] = useState({ open: false, type: '', newAuditDate: '', auditTaskId: '' });
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue, datePickerValue };
+      const filterData = { sortValue, searchText, searchType, filterValue, datePickerValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType, datePickerValue],
+    [sortValue, filterValue, searchText, searchType, datePickerValue],
   );
 
   const getListing = useCallback(() => {
@@ -200,26 +198,21 @@ const FoggingExpiredTaskTable = (props) => {
     return {};
   };
 
-  const filterData = [
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(pendingExplanations, 'premisesType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'foggingPurpose',
-      title: 'Purpose of Fogging',
-      values: getFilterArrayOfListForKey(pendingExplanations, 'foggingPurpose'),
-    },
-    // {
-    //   type: FilterType.SEARCH,
-    //   id: 'auditTaskStatus',
-    //   title: 'Audit Task Status',
-    //   values: getFilterArrayOfListForKey(pendingExplanations, 'auditTaskStatus'),
-    // },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'foggingPurpose',
+        title: 'Purpose of Fogging',
+      },
+    ],
+    [],
+  );
 
   // const expiredTaskTitle = functionNameList.includes(FUNCTION_NAMES.approveOrRejectFoggingExpiredTask) ? 'Expired Tasks – Explanation Pending Approval' : 'Expired Tasks – Pending Explanation';
   return (
@@ -228,7 +221,7 @@ const FoggingExpiredTaskTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={pendingExplanations} />
           <Sort className="navbar-nav sortWrapper" data={pendingExplanationColumns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 
 import Header from 'components/ui/header';
@@ -70,14 +70,17 @@ const EmailHistoryDetail = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'readFlag',
-      title: 'Read?',
-      values: ['Yes', 'No'],
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'readFlag',
+        title: 'Read?',
+        values: ['Yes', 'No'],
+      },
+    ],
+    [],
+  );
 
   const [sortValue, setSortValue] = useState({ id: 'submittedDate', label: 'Submitted Date', desc: false });
   const [searchType, setSearchTypeValue] = useState('soeId');
@@ -102,7 +105,7 @@ const EmailHistoryDetail = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

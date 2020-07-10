@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef } from 'react';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import Sort from 'components/common/sort';
@@ -21,8 +20,6 @@ const Audit = (props) => {
   const [datePickerValue, setDatePickerValue] = useState();
   const [filterValue, setFilterValue] = useState();
   const filterRef = useRef(null);
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const searchData = [
     {

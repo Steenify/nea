@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -15,7 +14,7 @@ import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
 import { getApprovalListingService } from 'services/common';
 
-import { actionTryCatchCreator, getMonthFromString, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, getMonthFromString, filterFunc, sortFunc } from 'utils';
 
 import { rejectAction, supportAction, approveAction } from 'modules/vectorInspection/town-council-fine-regime-detail/action';
 
@@ -34,15 +33,14 @@ const TCFineRegimeTable = ({ history: { push }, detailAction, ui: { isLoading },
   const [searchType, setSearchType] = useState(detailAction === 'support' ? 'confirmedBy' : 'supportedBy');
   const [filterValue, setFilterValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue };
+      const filterData = { sortValue, searchText, searchType, filterValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType],
+    [sortValue, filterValue, searchText, searchType],
   );
 
   const getList = useCallback(() => {
@@ -89,26 +87,26 @@ const TCFineRegimeTable = ({ history: { push }, detailAction, ui: { isLoading },
     return {};
   };
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'year',
-      title: 'Year',
-      values: getFilterArrayOfListForKey(tableData, 'year'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'month',
-      title: 'Month',
-      values: getFilterArrayOfListForKey(tableData, 'month'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'tcCodeDesc',
-      title: 'Town Council',
-      values: getFilterArrayOfListForKey(tableData, 'tcCodeDesc'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'year',
+        title: 'Year',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'month',
+        title: 'Month',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'tcCodeDesc',
+        title: 'Town Council',
+      },
+    ],
+    [],
+  );
 
   const searchData = [
     {
@@ -212,7 +210,7 @@ const TCFineRegimeTable = ({ history: { push }, detailAction, ui: { isLoading },
       <div className="navbar navbar-expand filterMainWrapper">
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
-          <Filter ref={filterRef} className="ml-auto navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="ml-auto navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

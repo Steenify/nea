@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
@@ -10,7 +9,6 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 
 import DataTable from 'components/common/data-table';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { adHocFoggingAuditSearchAction, pastDefaultFilterValue, pastListFilterAction, submitAdhocFoggingAuditAction } from './action';
 
@@ -45,7 +43,7 @@ const AdHocDetail = (props) => {
 
   const [searchText, setSearchTextValue] = useState('');
   const [searchType, setSearchType] = useState('address');
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+
   const [datePickerValue, setDatePickerValue] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
 
@@ -63,12 +61,12 @@ const AdHocDetail = (props) => {
   useEffect(() => {
     pastListFilterAction({
       sortValue: pastSortValue,
-      searchText: debounceSearchText,
+      searchText,
       searchType,
       filterValue,
       datePickerValue,
     });
-  }, [pastSortValue, pastListFilterAction, debounceSearchText, searchType, datePickerValue, filterValue]);
+  }, [pastSortValue, pastListFilterAction, searchText, searchType, datePickerValue, filterValue]);
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo) {
@@ -142,50 +140,46 @@ const AdHocDetail = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(pastList, 'regionOffice'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(pastList, 'division'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(pastList, 'premisesType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'sourceReduction',
-      title: 'Source Reduction',
-      values: getFilterArrayOfListForKey(pastList, 'sourceReduction'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'notification',
-      title: 'Notification',
-      values: getFilterArrayOfListForKey(pastList, 'notification'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'audited',
-      title: 'Audited',
-      values: getFilterArrayOfListForKey(pastList, 'audited'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'nonCompliant',
-      title: ' Non-compliant',
-      values: getFilterArrayOfListForKey(pastList, 'nonCompliant'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'sourceReduction',
+        title: 'Source Reduction',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'notification',
+        title: 'Notification',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'audited',
+        title: 'Audited',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'nonCompliant',
+        title: ' Non-compliant',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -193,7 +187,7 @@ const AdHocDetail = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={pastList} />
           <Sort className="navbar-nav sortWrapper" data={pastColumns} value={pastSortValue} desc={pastSortValue.desc} onChange={setPastSortValue} />
         </div>
       </div>

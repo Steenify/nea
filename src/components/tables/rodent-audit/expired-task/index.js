@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -16,7 +16,7 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import { WEB_ROUTES, tableColumnWidth, FUNCTION_NAMES } from 'constants/index';
 
 import { pickNewAuditDateService } from 'services/rodent-audit';
-import { actionTryCatchCreator, dateStringFromDate, randomDate, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, dateStringFromDate, randomDate, filterFunc, sortFunc } from 'utils';
 
 const RodentExpiredTaskTable = (props) => {
   const {
@@ -198,20 +198,21 @@ const RodentExpiredTaskTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'taskTypeToBeDisplayed',
-      title: 'Task Type',
-      values: getFilterArrayOfListForKey(data, 'taskTypeToBeDisplayed'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(data, 'division'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'taskTypeToBeDisplayed',
+        title: 'Task Type',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+    ],
+    [],
+  );
 
   const [sortValue, setSortValue] = useState({ id: 'taskId', label: 'Task ID', desc: false });
   const [searchType, setSearchTypeValue] = useState('taskId');
@@ -230,7 +231,7 @@ const RodentExpiredTaskTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={data} />
           <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

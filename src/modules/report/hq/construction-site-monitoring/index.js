@@ -30,7 +30,7 @@ const ConstructionSiteMonitoring = (props) => {
   const passwordModalRef = useRef(null);
 
   useEffect(() => {
-    document.title = 'NEA | HQ - Construction Site Inspection';
+    document.title = `NEA | ${WEB_ROUTES.REPORT.CONSTRUCTION_SITE_MONITORING.name}`;
     getMastercodeAction([MASTER_CODE.RO_CODE, MASTER_CODE.CDC_CODE, MASTER_CODE.GRC_CODE, MASTER_CODE.DIVISION_CODE], undefined, true);
   }, [getMastercodeAction]);
 
@@ -64,11 +64,11 @@ const ConstructionSiteMonitoring = (props) => {
     <>
       <Header />
       <div className="main-content">
-        <NavBar active="Construction Site Monitoring" />
+        <NavBar active={WEB_ROUTES.REPORT.CONSTRUCTION_SITE_MONITORING.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.REPORT, WEB_ROUTES.REPORT.CONSTRUCTION_SITE_MONITORING]} />
           <div className="main-title">
-            <h1>HQ - Construction Site Monitoring</h1>
+            <h1>{WEB_ROUTES.REPORT.CONSTRUCTION_SITE_MONITORING.name}</h1>
           </div>
           <div className="paddingLeft30">
             <h2>Selection Criteria</h2>

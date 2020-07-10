@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -14,7 +13,6 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 import InPageLoading from 'components/common/inPageLoading';
 
-import { getFilterArrayOfListForKey } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
 import { filterUploadedPCOScheduleAction, getUploadedPCOScheduleAction, defaultFilterValue } from './action';
@@ -92,8 +90,6 @@ const PCOSchedule = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   useEffect(() => {
     document.title = 'NEA | PCO Schedule';
     getUploadedPCOScheduleAction().then(() => {
@@ -105,26 +101,27 @@ const PCOSchedule = (props) => {
     filterUploadedPCOScheduleAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
       filterValue,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, datePickerValue, filterUploadedPCOScheduleAction]);
+  }, [searchText, searchType, sortValue, filterValue, datePickerValue, filterUploadedPCOScheduleAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'months',
-      title: 'Months',
-      values: getFilterArrayOfListForKey(list, 'months'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'status',
-      title: 'File Status',
-      values: getFilterArrayOfListForKey(list, 'status'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'months',
+        title: 'Months',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'status',
+        title: 'File Status',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -143,7 +140,7 @@ const PCOSchedule = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox name="barcode" placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

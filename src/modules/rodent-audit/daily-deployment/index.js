@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
+import NewBreadCrumb from 'components/ui/breadcrumb';
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
 import { tableColumnWidth, WEB_ROUTES, SUBMISSION_TYPE } from 'constants/index';
@@ -19,7 +19,6 @@ import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { defaultFilterValue, filterListAction, dailyDeploymentListingAction, uploadDailyDevelopmentAction } from './action';
 
@@ -83,50 +82,47 @@ const DailyDeployment = (props) => {
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   useEffect(() => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [sortValue, searchType, debounceSearchText, datePickerValue, filterValue, filterListAction]);
+  }, [sortValue, searchType, searchText, datePickerValue, filterValue, filterListAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'contractType',
-      title: 'Contract Type',
-      values: getFilterArrayOfListForKey(list, 'contractType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'ro',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'ro'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'licenceType',
-      title: 'License Type',
-      values: getFilterArrayOfListForKey(list, 'licenceType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'status',
-      title: 'Status',
-      values: getFilterArrayOfListForKey(list, 'status'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'contractType',
+        title: 'Contract Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'ro',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'licenceType',
+        title: 'License Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'status',
+        title: 'Status',
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
@@ -204,6 +200,7 @@ const DailyDeployment = (props) => {
         <NavBar active={WEB_ROUTES.RODENT_AUDIT.DAILY_DEPLOYMENT.name} />
 
         <div className="contentWrapper">
+          <NewBreadCrumb page={[WEB_ROUTES.RODENT_AUDIT, WEB_ROUTES.RODENT_AUDIT.DAILY_DEPLOYMENT]} />
           <div className="main-title">
             <h1>{WEB_ROUTES.RODENT_AUDIT.DAILY_DEPLOYMENT.name}</h1>
 
@@ -219,7 +216,7 @@ const DailyDeployment = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

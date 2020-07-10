@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { Formik, Form } from 'formik';
 
 import Header from 'components/ui/header';
@@ -21,7 +21,7 @@ import Filter, { FilterType } from 'components/common/filter';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
 import { ReactComponent as CloseIcon } from 'assets/svg/close.svg';
-import { byteArrayToBlob, exportExcel, configMissingFieldMessage, getFilterArrayOfListForKey } from 'utils';
+import { byteArrayToBlob, exportExcel, configMissingFieldMessage } from 'utils';
 
 import { filterListingAction, getListingAction, deleteAction, editAction, cancelEditAction, addAction, removeAddAction, defaultFilterValue } from './action';
 
@@ -53,8 +53,6 @@ const NotificationTemplate = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
@@ -66,10 +64,10 @@ const NotificationTemplate = (props) => {
     filterListingAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, filterListingAction]);
+  }, [searchText, searchType, sortValue, filterValue, filterListingAction]);
 
   const onSubmit = (values, actions) => {
     actions.setSubmitting(false);
@@ -104,14 +102,16 @@ const NotificationTemplate = (props) => {
     return errors;
   };
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'notificationType',
-      title: 'Notification Type',
-      values: getFilterArrayOfListForKey(editingList, 'notificationType'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'notificationType',
+        title: 'Notification Type',
+      },
+    ],
+    [],
+  );
 
   const isEditing = editingList.filter((item) => item.action).length > 0;
 
@@ -195,7 +195,7 @@ const NotificationTemplate = (props) => {
                   <div className="navbar navbar-expand filterMainWrapper">
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                       <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-                      <Filter className="navbar-nav filterWrapper xs-paddingBottom15 ml-auto" onChange={setFilterValue} data={filterData} />
+                      <Filter className="navbar-nav filterWrapper xs-paddingBottom15 ml-auto" onChange={setFilterValue} data={filterData} original={editingList} />
                       <Sort className="navbar-nav sortWrapper" data={columns.filter((col) => col.Header.toLowerCase() !== 'action')} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
                     </div>
                   </div>

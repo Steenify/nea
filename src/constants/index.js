@@ -3432,7 +3432,7 @@ export const WEB_ROUTES = {
       functionNames: [FUNCTION_NAMES.getRodentListing],
     },
     QUERY_RODENT_INSPECTION_DETAIL: {
-      name: 'Rodent Inspection Detail',
+      name: 'Query Rodent Inspection - Detail',
       url: '/inspection-management/query-rodent-inspections/detail',
       functionNames: [],
     },

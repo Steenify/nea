@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import prettySize from 'prettysize';
 import { toast } from 'react-toastify';
 
@@ -28,7 +28,7 @@ const SystemAuditLog = (props) => {
     getSysConfigAction,
     // history,
     ui: { isLoading },
-    data: { filteredList, sysConfig = {} },
+    data: { filteredList, list, sysConfig = {} },
   } = props;
 
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
@@ -36,8 +36,6 @@ const SystemAuditLog = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const [selectedLogFiles, setLogFiles] = useState([]);
 
@@ -51,11 +49,11 @@ const SystemAuditLog = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [debounceSearchText, searchType, sortValue, datePickerValue, filterValue, filterListAction]);
+  }, [searchText, searchType, sortValue, datePickerValue, filterValue, filterListAction]);
 
   const onCheckRow = (logFile) => {
     const index = selectedLogFiles.findIndex((item) => item.logFileName === logFile.logFileName);
@@ -95,14 +93,17 @@ const SystemAuditLog = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'logFileType',
-      title: 'Log File Type',
-      values: ['microservices logs', 'common event logs'],
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'logFileType',
+        title: 'Log File Type',
+        values: ['microservices logs', 'common event logs'],
+      },
+    ],
+    [],
+  );
 
   const columns = [
     {
@@ -145,7 +146,7 @@ const SystemAuditLog = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} timePicker />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

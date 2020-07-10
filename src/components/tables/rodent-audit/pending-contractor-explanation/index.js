@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
@@ -10,7 +10,7 @@ import Filter, { FilterType } from 'components/common/filter';
 
 import { WEB_ROUTES, tableColumnWidth } from 'constants/index';
 
-import { getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { filterFunc, sortFunc } from 'utils';
 
 const RodentPendingContractorExplanationTable = (props) => {
   const {
@@ -77,20 +77,21 @@ const RodentPendingContractorExplanationTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'taskTypeToBeDisplayed',
-      title: 'Task Type',
-      values: getFilterArrayOfListForKey(data, 'taskTypeToBeDisplayed'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'lapseType',
-      title: 'Type of Lapses',
-      values: getFilterArrayOfListForKey(data, 'lapseType'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'taskTypeToBeDisplayed',
+        title: 'Task Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'lapseType',
+        title: 'Type of Lapses',
+      },
+    ],
+    [],
+  );
 
   const [sortValue, setSortValue] = useState({ id: 'taskId', label: 'Task ID', desc: false });
   const [searchType, setSearchTypeValue] = useState('taskId');
@@ -105,7 +106,7 @@ const RodentPendingContractorExplanationTable = (props) => {
       <div className="navbar navbar-expand filterMainWrapper">
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={data} />
           <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

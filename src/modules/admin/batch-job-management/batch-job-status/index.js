@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import moment from 'moment';
 
 import Header from 'components/ui/header';
@@ -21,7 +21,7 @@ import { toast } from 'react-toastify';
 
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
-import { getFilterArrayOfListForKey, exportExcel } from 'utils';
+import { exportExcel } from 'utils';
 
 import { filterListingAction, getListingAction, deleteAction, triggerAction, terminateAction, defaultFilterValue } from './action';
 
@@ -49,8 +49,6 @@ const BatchJobStatus = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
@@ -62,10 +60,10 @@ const BatchJobStatus = (props) => {
     filterListingAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, filterListingAction]);
+  }, [searchText, searchType, sortValue, filterValue, filterListingAction]);
 
   const columns = [
     // {
@@ -148,14 +146,16 @@ const BatchJobStatus = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'status',
-      title: 'Status',
-      values: getFilterArrayOfListForKey(list, 'status'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'status',
+        title: 'Status',
+      },
+    ],
+    [],
+  );
   return (
     <>
       <Header />
@@ -169,7 +169,7 @@ const BatchJobStatus = (props) => {
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15 ml-auto" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15 ml-auto" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns.filter((col) => col.Header.toLowerCase() !== 'action')} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

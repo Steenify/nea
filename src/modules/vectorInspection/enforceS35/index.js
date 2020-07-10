@@ -34,7 +34,7 @@ const EnforceNotice = ({ enforceS35Action, location: { state = {} }, history: { 
     })) || [];
   useEffect(() => {
     if (!noticeType) return;
-    document.title = 'NEA | S35 Enforcement';
+    document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.ENFORCE_S35.name}`;
   }, [noticeType]);
 
   const deleteFileAction = (fileId = '', onSuccessHandler) => {
@@ -115,7 +115,7 @@ const EnforceNotice = ({ enforceS35Action, location: { state = {} }, history: { 
         <NavBar active={WEB_ROUTES.INSPECTION_MANAGEMENT.LATEST_INSPECTION.name} />
         <div className="contentWrapper">
           <Breadcrumb page={[WEB_ROUTES.INSPECTION_MANAGEMENT, WEB_ROUTES.INSPECTION_MANAGEMENT.LATEST_INSPECTION, WEB_ROUTES.INSPECTION_MANAGEMENT.ENFORCE_S35]} />
-          <GoBackButton onClick={goBack} title="S35 Enforcement" />
+          <GoBackButton onClick={goBack} title={WEB_ROUTES.INSPECTION_MANAGEMENT.ENFORCE_S35.name} />
           <Formik initialValues={initialValues} validate={validate} onSubmit={onSubmit}>
             {({ values, isSubmitting, setFieldValue }) => {
               const units = values?.units || [];

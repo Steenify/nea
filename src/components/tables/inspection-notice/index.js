@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
@@ -17,7 +17,7 @@ import { tableColumnWidth, FUNCTION_NAMES, WEB_ROUTES } from 'constants/index';
 import { getApprovalListingService } from 'services/common';
 
 import { approveInspectionNoticeService, rejectInspectionNoticeService } from 'services/inspection-management/latest-block-summary';
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 const InspectionNoticeApprovalTable = (props) => {
   const { functionNameList, history } = props;
@@ -189,14 +189,16 @@ const InspectionNoticeApprovalTable = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'noticeType',
-      title: 'Notice Type',
-      values: getFilterArrayOfListForKey(tableData, 'noticeType'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'noticeType',
+        title: 'Notice Type',
+      },
+    ],
+    [],
+  );
 
   const [sortValue, setSortValue] = useState({ id: 'requestedDate', label: 'Requested Date', desc: false });
   const [searchType, setSearchTypeValue] = useState('requestor');
@@ -213,7 +215,7 @@ const InspectionNoticeApprovalTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Search by keyword" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={tableData} />
           <Sort className="navbar-nav sortWrapper xs-paddingBottom20" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

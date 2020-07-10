@@ -1,23 +1,40 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
+import moment from 'moment';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
-import DataTable from 'components/common/data-table';
-import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
+import FilteringDataTable from 'components/common/filtering-data-table';
+import DateRangePickerSelect, { DateRangePickerSelectMode } from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 import NewBreadCrumb from 'components/ui/breadcrumb';
 import InPageLoading from 'components/common/inPageLoading';
 
-import { getFilterArrayOfListForKey, dateTimeFormatString } from 'utils';
+import { dateTimeFormatString, actionTryCatchCreator } from 'utils';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
+import { getRodentInspectionListingService } from 'services/inspection-management/rodent';
 
-import { filterQueryRodentInspectionAction, getRodentInspectionListAction, defaultFilterValue } from './action';
+export const defaultFilterValue = {
+  searchText: '',
+  searchType: 'rccId',
+  datePickerValue: {
+    startDate: moment().subtract(30, 'days').startOf('day'),
+    endDate: moment().endOf('day'),
+    mode: DateRangePickerSelectMode.custom,
+  },
+  filterValue: null,
+  sortValue: {
+    id: 'inspectionDate',
+    label: 'Inspection Date',
+    desc: false,
+    sortType: 'date',
+  },
+};
 
 const searchData = [
   {
@@ -54,7 +71,7 @@ const columns = [
   {
     Header: 'Inspection ID',
     accessor: 'inspectionId',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'RO',
@@ -70,16 +87,18 @@ const columns = [
     Header: 'Inspection Date',
     accessor: 'inspectionDate',
     minWidth: tableColumnWidth.md,
+    sortType: 'date',
   },
   {
     Header: 'Inspection Time',
     accessor: 'inspectionTime',
     minWidth: tableColumnWidth.md,
+    sortType: 'time',
   },
   {
     Header: 'Inspection Officer',
     accessor: 'inspectedBy',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'Division',
@@ -89,7 +108,7 @@ const columns = [
   {
     Header: 'Inspection Type',
     accessor: 'inspectionType',
-    minWidth: tableColumnWidth.md,
+    minWidth: tableColumnWidth.lg,
   },
   {
     Header: 'Premises Type',
@@ -133,16 +152,8 @@ const columns = [
   },
 ];
 
-const QueryRodentInspection = (props) => {
-  const {
-    getRodentInspectionListAction,
-    filterQueryRodentInspectionAction,
-
-    // history,
-    ui: { isLoading },
-    data: { filteredList, list },
-  } = props;
-
+const QueryRodentInspection = () => {
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
@@ -150,102 +161,79 @@ const QueryRodentInspection = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const getListing = useCallback(() => {
     const startDate = datePickerValue?.startDate || defaultFilterValue.datePickerValue.startDate;
     const endDate = datePickerValue?.endDate || defaultFilterValue.datePickerValue.endDate;
-    getRodentInspectionListAction({
+    const params = {
       startDate: startDate.format(dateTimeFormatString),
       endDate: endDate.format(dateTimeFormatString),
-    }).then(() => {
-      if (filterRef && filterRef.current) filterRef.current.onClear();
-    });
-  }, [datePickerValue, getRodentInspectionListAction]);
+    };
+    actionTryCatchCreator(
+      getRodentInspectionListingService(params),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.queryRodentList || [] });
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, [datePickerValue]);
 
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION.name}`;
     getListing();
   }, [getListing]);
 
-  useEffect(() => {
-    filterQueryRodentInspectionAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-    });
-  }, [debounceSearchText, searchType, sortValue, filterValue, filterQueryRodentInspectionAction]);
-
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOfficeCode',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'regionOfficeCode'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(list, 'division'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'inspectionType',
-      title: 'Inspection Type',
-      values: getFilterArrayOfListForKey(list, 'inspectionType'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'premiseType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(list, 'premiseType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'tcInspectionType',
-      title: 'TC Inspection Type',
-      values: getFilterArrayOfListForKey(list, 'tcInspectionType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'signsOfInfestation',
-      title: 'Signs of Infestation',
-      values: getFilterArrayOfListForKey(list, 'signsOfInfestation'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'breedingHabitats',
-      title: 'Breeding Habitats',
-      values: getFilterArrayOfListForKey(list, 'breedingHabitats'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'preventiveMeasures',
-      title: 'Preventive Measures',
-      values: getFilterArrayOfListForKey(list, 'preventiveMeasures'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'inspectorRole',
-      title: 'RCU / Non-RCU',
-      values: getFilterArrayOfListForKey(list, 'inspectorRole'),
-    },
-  ];
-
-  // const getTrProps = (_state, rowInfo) => {
-  //   if (rowInfo && rowInfo.row) {
-  //     const { rccId } = rowInfo.row;
-  //     return {
-  //       onClick: () => {
-  //         // history.push(WEB_ROUTES.INSPECTION_MANAGEMENT.QUERY_RODENT_INSPECTION_DETAIL.url, { rccId });
-  //       },
-  //       className: 'cursor-pointer',
-  //     };
-  //   }
-  //   return {};
-  // };
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOfficeCode',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'inspectionType',
+        title: 'Inspection Type',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'premiseType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'tcInspectionType',
+        title: 'TC Inspection Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'signsOfInfestation',
+        title: 'Signs of Infestation',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'breedingHabitats',
+        title: 'Breeding Habitats',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'preventiveMeasures',
+        title: 'Preventive Measures',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'inspectorRole',
+        title: 'RCU / Non-RCU',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -267,14 +255,14 @@ const QueryRodentInspection = (props) => {
                 data={datePickerValue}
                 resetValue={defaultFilterValue.datePickerValue}
               />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="tabsContainer">
-            <DataTable data={filteredList || []} columns={columns} />
+            <FilteringDataTable data={apiState.list || []} columns={columns} filterData={{ searchType, searchText, filterValue, sortValue }} />
           </div>
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -282,14 +270,10 @@ const QueryRodentInspection = (props) => {
   );
 };
 
-const mapStateToProps = ({ vectorInspectionReducers: { queryRodentInspection } }, ownProps) => ({
+const mapStateToProps = (_reducers, ownProps) => ({
   ...ownProps,
-  ...queryRodentInspection,
 });
 
-const mapDispatchToProps = {
-  filterQueryRodentInspectionAction,
-  getRodentInspectionListAction,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(QueryRodentInspection));

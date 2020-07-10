@@ -195,7 +195,7 @@ export const dateTimeStringFromDate = (date) => moment(date).format(dateTimeForm
 export const dateTimeStringDBFromDate = (date) => moment(date).format(dateTimeDBFormatString);
 export const time12StringFromDate = (date) => moment(date).format(time12FormatString);
 export const time24StringFromDate = (date) => moment(date).format(time24FormatString);
-export const dateFromString = (string) => moment(string, dateTimeFormatStrings);
+export const dateFromString = (string) => moment(string, dateTimeFormatStrings, true);
 
 export const dbDateTimeStringFrom = (date, time) => dateTimeStringDBFromDate(dateFromString(`${date} ${time}`));
 export const dateAndTimeFromDB = (dateTime) => {
@@ -300,69 +300,6 @@ export const sortAddress = (a, b) => {
 //   const result = listOfKeys.reduce((prev, curr) => prev || key.toLowerCase().includes(curr), false);
 //   return result;
 // };
-
-export const sortFuncV2 = (a, b, sortValue) => {
-  const { id, desc, combineDateTime, isTimePeriod, sortType } = sortValue;
-  const first = `${a[id] || ''}`.trim().toLowerCase();
-  const second = `${b[id] || ''}`.trim().toLowerCase();
-  if (sortType === 'date') {
-    let firstDate = null;
-    let secondDate = null;
-    if (combineDateTime) {
-      firstDate = moment(`${a[`${id}Date`]} ${a[`${id}Time`]}`, dateTimeFormatStrings, true);
-      secondDate = moment(`${b[`${id}Date`]} ${b[`${id}Time`]}`, dateTimeFormatStrings, true);
-    } else if (isTimePeriod) {
-      firstDate = moment(first.split(' to ')[0] || '', dateTimeFormatStrings, true);
-      secondDate = moment(second.split(' to ')[0] || '', dateTimeFormatStrings, true);
-    } else {
-      firstDate = moment(first, dateTimeFormatStrings, true);
-      secondDate = moment(second, dateTimeFormatStrings, true);
-    }
-
-    if (firstDate.isValid() && !secondDate.isValid()) {
-      return -1;
-    }
-    if (!firstDate.isValid() && secondDate.isValid()) {
-      return 1;
-    }
-    if (firstDate.isValid() && secondDate.isValid()) {
-      if (desc) {
-        return firstDate.format('x') < secondDate.format('x') ? -1 : 1;
-      }
-      return firstDate.format('x') > secondDate.format('x') ? -1 : 1;
-    }
-  }
-
-  if (sortType === 'number') {
-    const firstNumber = Number(first);
-    const secondNumber = Number(second);
-    if (isFinite(firstNumber) && isFinite(secondNumber)) {
-      if (desc) {
-        return firstNumber <= secondNumber ? 1 : -1;
-      }
-      return firstNumber >= secondNumber ? 1 : -1;
-    }
-    if (isNaN(firstNumber) && isFinite(secondNumber)) return 1;
-    if (isFinite(firstNumber) && isNaN(secondNumber)) return -1;
-  }
-
-  if (isBoolean(a[id]) && isBoolean(b[id])) {
-    const firstBool = a[id] ? 'Yes' : 'No';
-    const secondBool = b[id] ? 'Yes' : 'No';
-    if (desc) {
-      return firstBool < secondBool ? 1 : -1;
-    }
-    return firstBool > secondBool ? 1 : -1;
-  }
-
-  if (first && !second) return -1;
-  if (!first && second) return 1;
-
-  if (desc) {
-    return first < second ? -1 : 1;
-  }
-  return first > second ? -1 : 1;
-};
 
 export const sortFunc = (a, b, sortValue) => {
   const { id, desc, combineDateTime, isTimePeriod, sortType } = sortValue;

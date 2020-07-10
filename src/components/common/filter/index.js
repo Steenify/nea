@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { findDOMNode } from 'react-dom';
 import { debounce, isEqual, forEach } from 'lodash';
 import uuid from 'uuid/v4';
@@ -6,7 +6,9 @@ import uuid from 'uuid/v4';
 import { ReactComponent as FiltersIcon } from 'assets/svg/filter.svg';
 import { ReactComponent as FiltersWhiteIcon } from 'assets/svg/filter-white.svg';
 
-// import './style.scss';
+import Worker from 'utils/workers/filter-values.worker';
+
+const worker = new Worker();
 
 export const FilterType = {
   SELECT: 'SELECT',
@@ -194,7 +196,7 @@ class Filter extends Component {
       if (item.length) {
         isSelected = true;
       }
-      if (item.type === 'COMPARE' && item.values.length) {
+      if (item.type === 'COMPARE' && item.values?.length) {
         isSelected = true;
       }
     });
@@ -216,19 +218,19 @@ class Filter extends Component {
                   <div className="paddingBottom10 bold-font">{item.title}</div>
                   {item.type === FilterType.SEARCH && (
                     <>
-                      {item.values.length > 0 && (
+                      {item.values?.length > 0 && (
                         <div className="searchWrapper">
                           <input type="text" className="searchTextfield" placeholder={`Search ${item.title}`} onChange={(e) => this.filterSearch(index, e.target.value)} />
                         </div>
                       )}
                       <div className="chkboxCont">
-                        {item.values.length > 0 && (
+                        {item.values?.length > 0 && (
                           <div className="custom-control custom-checkbox paddingBottom5" key="filter_select_value__All">
                             <input
                               type="checkbox"
                               className="custom-control-input"
                               id={`custom_select_check__${index + 1}_All_${componentIndex}`}
-                              checked={selectedValues[index] && selectedValues[index].length === item.values.length}
+                              checked={selectedValues[index] && selectedValues[index].length === item.values?.length}
                               onChange={() => this.onCheckAll(index)}
                             />
                             <label className="custom-control-label" htmlFor={`custom_select_check__${index + 1}_All_${componentIndex}`}>
@@ -236,7 +238,7 @@ class Filter extends Component {
                             </label>
                           </div>
                         )}
-                        {filteredDataValues[index].map((value, i) => (
+                        {filteredDataValues[index]?.map((value, i) => (
                           <div className="custom-control custom-checkbox paddingBottom5" key={`filter_search_value__${index.toString()}_${i.toString()}`}>
                             <input
                               type="checkbox"
@@ -255,13 +257,13 @@ class Filter extends Component {
                   )}
                   {item.type === FilterType.SELECT && (
                     <>
-                      {item.values.length > 0 && (
+                      {item.values?.length > 0 && (
                         <div className="custom-control custom-checkbox paddingBottom5" key="filter_select_value__All">
                           <input
                             type="checkbox"
                             className="custom-control-input"
                             id={`custom_select_check__${index + 1}_All_${componentIndex}`}
-                            checked={selectedValues[index] && selectedValues[index].length === item.values.length}
+                            checked={selectedValues[index] && selectedValues[index].length === item.values?.length}
                             onChange={() => this.onCheckAll(index)}
                           />
                           <label className="custom-control-label" htmlFor={`custom_select_check__${index + 1}_All_${componentIndex}`}>
@@ -271,7 +273,7 @@ class Filter extends Component {
                       )}
 
                       <div style={{ overflowY: 'auto', overflowX: 'hidden', height: 152 }}>
-                        {item.values.map((value, i) => (
+                        {item.values?.map((value, i) => (
                           <div className="custom-control custom-checkbox paddingBottom5" key={`filter_select_value__${i + 1}`}>
                             <input
                               type="checkbox"
@@ -290,13 +292,13 @@ class Filter extends Component {
                   )}
                   {item.type === FilterType.COMPARE && (
                     <>
-                      {item.values.length > 0 && (
+                      {item.values?.length > 0 && (
                         <div className="custom-control custom-checkbox paddingBottom5" key="filter_compare_value__All">
                           <input
                             type="checkbox"
                             className="custom-control-input"
                             id={`custom_compare_check__${index + 1}_All_${componentIndex}`}
-                            checked={selectedValues[index] && selectedValues[index].values.length === item.values.length}
+                            checked={selectedValues[index] && selectedValues[index].values.length === item.values?.length}
                             onChange={() => this.onCheckAll(index)}
                           />
                           <label className="custom-control-label" htmlFor={`custom_compare_check__${index + 1}_All_${componentIndex}`}>
@@ -306,7 +308,7 @@ class Filter extends Component {
                       )}
 
                       <div style={{ overflowY: 'auto', overflowX: 'hidden', height: 152 }}>
-                        {item.values.map((value, i) => (
+                        {item.values?.map((value, i) => (
                           <div className="custom-control custom-checkbox paddingBottom5" key={`filter_compare_value__${i + 1}`}>
                             <input
                               type="checkbox"
@@ -326,7 +328,7 @@ class Filter extends Component {
                   {item.type === FilterType.SINGLE_SELECT && (
                     <>
                       <div style={{ overflowY: 'auto', overflowX: 'hidden', height: 175 }}>
-                        {item.values.map((value, i) => (
+                        {item.values?.map((value, i) => (
                           <div className="custom-control custom-checkbox paddingBottom5" key={`filter_select_value__${i + 1}`}>
                             <input
                               type="checkbox"
@@ -372,13 +374,27 @@ Filter.defaultProps = {
   statusFilter: true,
 };
 
-export default Filter;
+const FilterWrapper = React.forwardRef((props, ref) => {
+  const { data, original = [] } = props;
 
-// const mapStateToProps = () => ({});
+  const [finalData, setFinalData] = useState(data);
 
-// const mapDispatchToProps = {};
+  useEffect(() => {
+    worker.postMessage({ data, original });
+  }, [data, original]);
 
-// export default connect(
-//   mapStateToProps,
-//   mapDispatchToProps,
-// )(Filter);
+  useEffect(() => {
+    const setList = (e) => {
+      setFinalData(e.data);
+    };
+    worker.addEventListener('message', setList);
+
+    return () => {
+      worker.removeEventListener('message', setList);
+    };
+  }, []);
+
+  return <Filter ref={ref} {...props} data={finalData} />;
+});
+
+export default FilterWrapper;

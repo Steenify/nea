@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
@@ -44,8 +43,6 @@ const EWeekMaintenance = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   useEffect(() => {
     document.title = `NEA | ${WEB_ROUTES.ADMINISTRATION.EWEEK.name}`;
     resetReducerAction();
@@ -56,9 +53,9 @@ const EWeekMaintenance = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const columns = [
     {

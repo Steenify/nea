@@ -1,23 +1,34 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
 import NewBreadCrumb from 'components/ui/breadcrumb';
 import InPageLoading from 'components/common/inPageLoading';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
+import { sofListingService } from 'services/inspection-management/sof';
+import { actionTryCatchCreator } from 'utils';
 
-import { defaultFilterValue, filterListAction, getListAction } from './action';
+export const defaultFilterValue = {
+  sortValue: {
+    id: 'breedingDetectionDate',
+    label: 'Breeding Detection Date',
+    desc: false,
+    sortType: 'date',
+  },
+  filterValue: null,
+  datePickerValue: null,
+  searchText: '',
+  searchType: 'inspectionId',
+};
 
 const searchData = [
   {
@@ -39,13 +50,10 @@ const dateSelectData = [
 
 const EditSOF = (props) => {
   const {
-    getListAction,
-    filterListAction,
-    ui: { isLoading },
-    data: { filteredList, list },
     history: { push },
   } = props;
 
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
   const [sortValue, setSortValue] = useState(defaultFilterValue.sortValue);
   const [searchType, setSearchTypeValue] = useState(defaultFilterValue.searchType);
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
@@ -53,31 +61,33 @@ const EditSOF = (props) => {
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOfficeCode',
+        title: 'RO',
+      },
+    ],
+    [],
+  );
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOfficeCode',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'regionOfficeCode'),
-    },
-  ];
+  const getListing = useCallback(() => {
+    actionTryCatchCreator(
+      sofListingService(),
+      () => setAPIState((prev) => ({ ...prev, isLoading: true })),
+      (data) => {
+        setAPIState({ isLoading: false, list: data.inspections || [] });
+        if (filterRef && filterRef.current) filterRef.current.onClear();
+      },
+      () => setAPIState((prev) => ({ ...prev, isLoading: false })),
+    );
+  }, []);
 
   useEffect(() => {
-    document.title = 'NEA | Edit SOF';
-    getListAction();
-  }, [getListAction]);
-
-  useEffect(() => {
-    filterListAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      filterValue,
-      datePickerValue,
-    });
-  }, [sortValue, searchType, debounceSearchText, filterValue, datePickerValue, filterListAction]);
+    document.title = `NEA | ${WEB_ROUTES.INSPECTION_MANAGEMENT.EDIT_SOF.name}`;
+    getListing();
+  }, [getListing]);
 
   const getTrProps = (_state, rowInfo) => {
     if (rowInfo && rowInfo.row) {
@@ -95,12 +105,14 @@ const EditSOF = (props) => {
     {
       Header: 'Breeding Detection Date',
       accessor: 'breedingDetectionDate',
-      minWidth: tableColumnWidth.md,
+      minWidth: tableColumnWidth.lg,
+      sortType: 'date',
     },
     {
       Header: 'Breeding Detection Time',
       accessor: 'breedingDetectionTime',
-      minWidth: tableColumnWidth.md,
+      minWidth: tableColumnWidth.lg,
+      sortType: 'time',
     },
     {
       Header: 'RO',
@@ -133,14 +145,21 @@ const EditSOF = (props) => {
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox name="barcode" placeholder="Search for" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
-              <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom10" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom10" onChange={setFilterValue} data={filterData} />
+              <DateRangePickerSelect
+                className="navbar-nav filterWrapper ml-auto xs-paddingBottom10"
+                onChange={setDatePickerValue}
+                selectData={dateSelectData}
+                data={datePickerValue}
+                resetValue={defaultFilterValue.datePickerValue}
+              />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom10" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="tabsContainer">
-            <DataTable data={filteredList} columns={columns} getTrProps={getTrProps} />
-            <InPageLoading isLoading={isLoading} />
+            <FilteringDataTable data={apiState.list || []} columns={columns} getTrProps={getTrProps} filterData={{ searchType, searchText, filterValue, sortValue, datePickerValue }} />
+
+            <InPageLoading isLoading={apiState.isLoading} />
           </div>
           <Footer />
         </div>
@@ -149,14 +168,10 @@ const EditSOF = (props) => {
   );
 };
 
-const mapStateToProps = ({ vectorInspectionReducers: { editSof } }, ownProps) => ({
+const mapStateToProps = (_reducers, ownProps) => ({
   ...ownProps,
-  ...editSof,
 });
 
-const mapDispatchToProps = {
-  filterListAction,
-  getListAction,
-};
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(EditSOF));

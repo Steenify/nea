@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
 
 import Header from 'components/ui/header';
 import NewBreadCrumb from 'components/ui/breadcrumb';
@@ -12,8 +11,6 @@ import SearchBox from 'components/common/searchBox';
 import DataTable from 'components/common/data-table';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import Filter, { FilterType } from 'components/common/filter';
-
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { WEB_ROUTES } from 'constants/index';
 
@@ -51,8 +48,6 @@ const OptionalTaskLDConfigurationList = (props) => {
   const [searchText, setSearchTextValue] = useState(defaultFilterValue.searchText);
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
 
-  const [debounceSearchText] = useDebounce(searchText, 500);
-
   useEffect(() => {
     optionalInstanceCfgListingAction();
   }, [optionalInstanceCfgListingAction]);
@@ -61,11 +56,11 @@ const OptionalTaskLDConfigurationList = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       datePickerValue,
       filterValue,
     });
-  }, [debounceSearchText, searchType, sortValue, datePickerValue, filterListAction, filterValue]);
+  }, [searchText, searchType, sortValue, datePickerValue, filterListAction, filterValue]);
 
   const columns = [
     {
@@ -90,26 +85,26 @@ const OptionalTaskLDConfigurationList = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'crcInstance',
-      title: 'CRC Instance',
-      values: getFilterArrayOfListForKey(list, 'crcInstance'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'binchuteInstance',
-      title: 'Bin Chute Instance',
-      values: getFilterArrayOfListForKey(list, 'binchuteInstance'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'bincentreInstance',
-      title: 'Bin Centre Instance',
-      values: getFilterArrayOfListForKey(list, 'bincentreInstance'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'crcInstance',
+        title: 'CRC Instance',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'binchuteInstance',
+        title: 'Bin Chute Instance',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'bincentreInstance',
+        title: 'Bin Centre Instance',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -133,7 +128,7 @@ const OptionalTaskLDConfigurationList = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

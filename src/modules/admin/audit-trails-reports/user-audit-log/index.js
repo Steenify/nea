@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 import _ from 'lodash';
 
 import Header from 'components/ui/header';
@@ -10,7 +9,7 @@ import NewBreadCrumb from 'components/ui/breadcrumb';
 import Footer from 'components/ui/footer';
 import Sort from 'components/common/sort';
 import SearchBox from 'components/common/searchBox';
-import DataTable from 'components/common/data-table';
+import FilteringDataTable from 'components/common/filtering-data-table';
 import Filter, { FilterType } from 'components/common/filter';
 import CustomModal from 'components/common/modal';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
@@ -19,14 +18,9 @@ import InPageLoading from 'components/common/inPageLoading';
 import { tableColumnWidth, MODULE_NAMES, WEB_ROUTES } from 'constants/index';
 
 import { retrieveUserAuditLogService } from 'services/audit-trails-reports/user-audit-log';
-import { actionTryCatchCreator, filterFunc, getFilterArrayOfListForKey } from 'utils';
-import fastSort from 'fast-sort';
+import { actionTryCatchCreator } from 'utils';
 
-import {
-  // filterListAction, getListAction,
-  downloadListAction,
-  defaultFilterValue,
-} from './action';
+import { downloadListAction, defaultFilterValue } from './action';
 
 const searchData = [
   {
@@ -40,46 +34,17 @@ const searchData = [
 ];
 
 const UserAuditLog = (props) => {
-  const {
-    // getListAction,
-    // filterListAction,
-    downloadListAction,
-    // history,
-    // ui: { isLoading },
-    // data: { filteredList, list },
-  } = props;
+  const { downloadListAction } = props;
 
-  const [list, setList] = useState([]);
-  const [filteredList, setFilteredList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const filterListAction = useCallback(
-    (data = {}) => {
-      const filterData = { ...defaultFilterValue, ...data };
-      const { sortValue } = filterData;
-
-      let filteredList = list.filter((item) => filterFunc(item, filterData));
-      // .sort((a, b) => sortFunc(a, b, sortValue));
-
-      if (sortValue.desc) {
-        filteredList = fastSort(filteredList).desc(sortValue.id);
-      } else {
-        filteredList = fastSort(filteredList).asc(sortValue.id);
-      }
-
-      setFilteredList(filteredList);
-    },
-    [list],
-  );
+  const [apiState, setAPIState] = useState({ list: [], isLoading: false });
 
   const getListAction = (params) => {
-    const onPending = () => setIsLoading(true);
+    const onPending = () => setAPIState((prev) => ({ ...prev, isLoading: true }));
     const onSuccess = (data) => {
-      setIsLoading(false);
       const result = data.userAuditLogVOList || [];
-      setList(result);
+      setAPIState({ isLoading: false, list: result });
     };
-    const onError = () => setIsLoading(false);
+    const onError = () => setAPIState((prev) => ({ ...prev, isLoading: false }));
 
     actionTryCatchCreator(retrieveUserAuditLogService(params), onPending, onSuccess, onError);
   };
@@ -92,7 +57,6 @@ const UserAuditLog = (props) => {
 
   const [moduleName, setModuleName] = useState(MODULE_NAMES[0].value);
 
-  const [debounceSearchText] = useDebounce(searchText, 500);
   const [modalState, setModalState] = useState({ open: false, data: {} });
 
   useEffect(() => {
@@ -103,21 +67,12 @@ const UserAuditLog = (props) => {
     getListAction({ moduleName });
   }, [moduleName]);
 
-  useEffect(() => {
-    filterListAction({
-      sortValue,
-      searchType,
-      searchText: debounceSearchText,
-      datePickerValue,
-      filterValue,
-    });
-  }, [debounceSearchText, searchType, sortValue, datePickerValue, filterValue, filterListAction]);
-
   const columns = [
     {
       Header: 'Date',
       accessor: 'date',
       minWidth: tableColumnWidth.md,
+      sortType: 'dateTime',
     },
     {
       Header: 'User Table',
@@ -150,14 +105,16 @@ const UserAuditLog = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'userTable',
-      title: 'User Table',
-      values: getFilterArrayOfListForKey(list, 'userTable'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'userTable',
+        title: 'User Table',
+      },
+    ],
+    [],
+  );
 
   const printJSON = (json) => {
     if (_.isString(json)) {
@@ -193,14 +150,15 @@ const UserAuditLog = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Enter keywords" onChangeText={setSearchTextValue} searchTypes={searchData} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} timePicker />
-              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={apiState.list} />
               <Sort className="navbar-nav sortWrapper" data={columns.filter((item) => !item.hiddenInSort)} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>
           <div className="paddingBottom50 tabsContainer">
             <div>
-              <DataTable
-                data={filteredList}
+              <FilteringDataTable
+                data={apiState.list || []}
+                filterData={{ searchType, searchText, filterValue, sortValue, datePickerValue }}
                 columns={columns}
                 rightHeaderContent={
                   <div className="d-flex align-items-center">
@@ -236,7 +194,7 @@ const UserAuditLog = (props) => {
               </div>
             }
           />
-          <InPageLoading isLoading={isLoading} />
+          <InPageLoading isLoading={apiState.isLoading} />
           <Footer />
         </div>
       </div>
@@ -250,8 +208,6 @@ const mapStateToProps = ({ adminReducers: { userAuditLog } }, ownProps) => ({
 });
 
 const mapDispatchToProps = {
-  // getListAction,
-  // filterListAction,
   downloadListAction,
 };
 

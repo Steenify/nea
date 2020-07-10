@@ -1,4 +1,5 @@
 // config-overrides.js
+/* eslint-disable */
 const { useBabelRc, override } = require('customize-cra');
 
 function myOverrides(config) {

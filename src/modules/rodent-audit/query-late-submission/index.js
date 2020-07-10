@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Header from 'components/ui/header';
 import NavBar from 'components/layout/navbar';
 import Footer from 'components/ui/footer';
 import Sort from 'components/common/sort';
+import NewBreadCrumb from 'components/ui/breadcrumb';
 import SearchBox from 'components/common/searchBox';
 import DataTable from 'components/common/data-table';
 import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
@@ -15,8 +16,7 @@ import Filter, { FilterType } from 'components/common/filter';
 import InPageLoading from 'components/common/inPageLoading';
 import Checkbox from 'components/common/checkbox';
 
-import { tableColumnWidth } from 'constants/index';
-import { getFilterArrayOfListForKey } from 'utils';
+import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
 
 import { filterListAction, getListAction, defaultFilterValue, submitListAction } from './action';
 
@@ -51,8 +51,6 @@ const QueryLateSubmission = (props) => {
   const [datePickerValue, setDatePickerValue] = useState(defaultFilterValue.datePickerValue);
   const [filterValue, setFilterValue] = useState(defaultFilterValue.filterValue);
   const filterRef = useRef(null);
-
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const [fileIds, setfileIds] = useState([]);
   const isSelectAll = fileIds.length > 0 && fileIds.length === filteredList.length;
@@ -107,7 +105,7 @@ const QueryLateSubmission = (props) => {
     {
       Header: 'RO',
       accessor: 'ro',
-      minWidth: tableColumnWidth.lg,
+      minWidth: tableColumnWidth.md,
     },
     // {
     //   Header: 'GRC',
@@ -139,47 +137,23 @@ const QueryLateSubmission = (props) => {
       accessor: 'updatedDate',
       minWidth: tableColumnWidth.md,
     },
-    // {
-    //   Header: 'No. of days of delay',
-    //   accessor: 'something',
-    //   minWidth: tableColumnWidth.md,
-    // },
-    // {
-    //   Header: 'Show Cause Status',
-    //   accessor: 'causeStatus',
-    //   minWidth: tableColumnWidth.lg,
-    // },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'ro',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(list, 'ro'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'fileType',
-      title: 'Report Type',
-      values: getFilterArrayOfListForKey(list, 'fileType'),
-    },
-    // {
-    //   type: FilterType.SELECT,
-    //   id: 'causeStatus',
-    //   title: 'Show Cause Status',
-    //   values: [
-    //     'No lapses',
-    //     "Pending TL's recommendation",
-    //     'No SC; Pending Manager approval',
-    //     'No SC; Manager approved',
-    //     "Pending contractor's explanation",
-    //     'Contractor replied; Pending Manager approval',
-    //     'Contractor replied; Manager approved',
-    //     'Contractor replied; SM approved',
-    //   ],
-    // },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'ro',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'fileType',
+        title: 'Report Type',
+      },
+    ],
+    [],
+  );
 
   if (functionNameList.some((fun) => fun === 'submitLateSubmissionsForShowcause')) {
     columns.unshift({
@@ -205,7 +179,7 @@ const QueryLateSubmission = (props) => {
   }
 
   useEffect(() => {
-    document.title = 'NEA | Late Submissions';
+    document.title = `NEA | ${WEB_ROUTES.RODENT_AUDIT.QUERY_LATE_SUBMISSION.name}`;
     getListAction().then(() => {
       if (filterRef && filterRef.current) filterRef.current.onClear();
     });
@@ -215,26 +189,27 @@ const QueryLateSubmission = (props) => {
     filterListAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
       filterValue,
       datePickerValue,
     });
-  }, [debounceSearchText, searchType, sortValue, filterValue, datePickerValue, filterListAction]);
+  }, [searchText, searchType, sortValue, filterValue, datePickerValue, filterListAction]);
 
   return (
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Late Submissions" />
+        <NavBar active={WEB_ROUTES.RODENT_AUDIT.QUERY_LATE_SUBMISSION.name} />
         <div className="contentWrapper">
+          <NewBreadCrumb page={[WEB_ROUTES.RODENT_AUDIT, WEB_ROUTES.RODENT_AUDIT.QUERY_LATE_SUBMISSION]} />
           <div className="main-title">
-            <h1>Late Submissions</h1>
+            <h1>{WEB_ROUTES.RODENT_AUDIT.QUERY_LATE_SUBMISSION.name}</h1>
           </div>
           <div className="navbar navbar-expand filterMainWrapper">
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <SearchBox placeholder="Search by report file name" onChangeText={setSearchTextValue} searchTypes={[]} value={searchText} onChangeSearchType={setSearchTypeValue} />
               <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+              <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={list} />
               <Sort className="navbar-nav sortWrapper" data={columns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
             </div>
           </div>

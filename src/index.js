@@ -7,7 +7,6 @@ import { Provider } from 'react-redux';
 
 // thirdpartys
 import './vendor';
-
 // Styles
 import './styles/index.scss';
 

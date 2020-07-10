@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { Formik, Form } from 'formik';
 
 import Header from 'components/ui/header';
@@ -76,12 +76,10 @@ const SpecimenMaintenance = (props) => {
   const [searchType, setSearchTypeValue] = useState(initialState.ui.filterValue.searchType);
   const [searchText, setSearchTextValue] = useState(initialState.ui.filterValue.searchText);
 
-  const [debounceSearchText] = useDebounce(searchText, 1000);
-
   const [modalState, setModalState] = useState({ open: false, type: '', data: {} });
 
   useEffect(() => {
-    document.title = 'NEA | Specimen Maintenance';
+    document.title = `NEA | ${WEB_ROUTES.ADMINISTRATION.SPECIMEN.name}`;
     getMastercodeAction([MASTER_CODE.SPECIMEN_STAGE]);
     resetReducerAction();
     getListingAction();
@@ -91,9 +89,9 @@ const SpecimenMaintenance = (props) => {
     updateFilterAction({
       sortValue,
       searchType,
-      searchText: debounceSearchText,
+      searchText,
     });
-  }, [debounceSearchText, searchType, sortValue, updateFilterAction]);
+  }, [searchText, searchType, sortValue, updateFilterAction]);
 
   const onSubmit = async (values, actions) => {
     const { data } = values;
@@ -162,11 +160,11 @@ const SpecimenMaintenance = (props) => {
     <>
       <Header />
       <div className="main-content workspace__main">
-        <NavBar active="Specimen Maintenance" />
+        <NavBar active={WEB_ROUTES.ADMINISTRATION.SPECIMEN.name} />
         <div className="contentWrapper">
           <NewBreadCrumb page={[WEB_ROUTES.ADMINISTRATION, WEB_ROUTES.ADMINISTRATION.SPECIMEN]} />
           <div className="main-title">
-            <h1>Specimen Maintenance</h1>
+            <h1>{WEB_ROUTES.ADMINISTRATION.SPECIMEN.name}</h1>
           </div>
           <Formik enableReinitialize initialValues={{ data: filteredList }} validate={validate} onSubmit={onSubmit}>
             {({ dirty }) => {

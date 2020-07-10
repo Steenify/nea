@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
 
 import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
@@ -13,7 +12,7 @@ import DateRangePickerSelect from 'components/common/dateRangPickerSelect';
 import { WEB_ROUTES, tableColumnWidth, FUNCTION_NAMES } from 'constants/index';
 
 import { getFoggingWorkspaceListingService } from 'services/fogging-audit';
-import { actionTryCatchCreator, getFilterArrayOfListForKey, filterFunc, sortFunc } from 'utils';
+import { actionTryCatchCreator, filterFunc, sortFunc } from 'utils';
 
 const searchData = [
   {
@@ -63,7 +62,6 @@ const FoggingProposeEnforcementTable = (props) => {
   const [filterValue, setFilterValue] = useState(null);
   const [datePickerValue, setDatePickerValue] = useState(null);
   const filterRef = useRef(null);
-  const [debounceSearchText] = useDebounce(searchText, 1000);
 
   const getListing = () => {
     const onPending = () => {
@@ -81,11 +79,11 @@ const FoggingProposeEnforcementTable = (props) => {
 
   const filterListingAction = useCallback(
     (list) => {
-      const filterData = { sortValue, searchText: debounceSearchText, searchType, filterValue, datePickerValue };
+      const filterData = { sortValue, searchText, searchType, filterValue, datePickerValue };
       const filteredList = list.filter((item) => filterFunc(item, filterData)).sort((a, b) => sortFunc(a, b, filterData.sortValue));
       setFilteredTableData(filteredList);
     },
-    [sortValue, filterValue, debounceSearchText, searchType, datePickerValue],
+    [sortValue, filterValue, searchText, searchType, datePickerValue],
   );
 
   useEffect(() => {
@@ -96,26 +94,26 @@ const FoggingProposeEnforcementTable = (props) => {
     filterListingAction(enforcements);
   }, [enforcements, filterListingAction]);
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(enforcements, 'regionOffice'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(enforcements, 'division'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'nonCompliant',
-      title: ' Non-compliant',
-      values: getFilterArrayOfListForKey(enforcements, 'nonCompliant'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'nonCompliant',
+        title: ' Non-compliant',
+      },
+    ],
+    [],
+  );
 
   const enforcementColumns = [
     {
@@ -225,7 +223,7 @@ const FoggingProposeEnforcementTable = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} />
+          <Filter ref={filterRef} className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData} original={enforcements} />
           <Sort className="navbar-nav sortWrapper" data={enforcementColumns} value={sortValue} desc={sortValue.desc} onChange={setSortValue} />
         </div>
       </div>

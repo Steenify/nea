@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { useDebounce } from 'use-debounce';
+
 import { toast } from 'react-toastify';
 
 import Sort from 'components/common/sort';
@@ -13,7 +13,6 @@ import DataTable from 'components/common/data-table';
 import InPageLoading from 'components/common/inPageLoading';
 import Checkbox from 'components/common/checkbox';
 import { tableColumnWidth, WEB_ROUTES } from 'constants/index';
-import { getFilterArrayOfListForKey } from 'utils';
 
 import { upcomingListFilterAction, upcomingDefaultFilterValue, submitAdhocFoggingAuditAction } from './action';
 
@@ -47,7 +46,7 @@ const UpcomingFoggingTab = (props) => {
 
   const [searchText, setSearchTextValue] = useState('');
   const [searchType, setSearchType] = useState('address');
-  const [debounceSearchText] = useDebounce(searchText, 1000);
+
   const [datePickerValue, setDatePickerValue] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
 
@@ -59,12 +58,12 @@ const UpcomingFoggingTab = (props) => {
   useEffect(() => {
     upcomingListFilterAction({
       sortValue: upcomingSortValue,
-      searchText: debounceSearchText,
+      searchText,
       searchType,
       filterValue,
       datePickerValue,
     });
-  }, [upcomingSortValue, upcomingListFilterAction, debounceSearchText, searchType, datePickerValue, filterValue]);
+  }, [upcomingSortValue, upcomingListFilterAction, searchText, searchType, datePickerValue, filterValue]);
 
   const submitAudit = () => {
     submitAdhocFoggingAuditAction({ scheduleIds }, () => {
@@ -211,44 +210,41 @@ const UpcomingFoggingTab = (props) => {
     },
   ];
 
-  const filterData = [
-    {
-      type: FilterType.SELECT,
-      id: 'regionOffice',
-      title: 'RO',
-      values: getFilterArrayOfListForKey(upcomingList, 'regionOffice'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'division',
-      title: 'Division',
-      values: getFilterArrayOfListForKey(upcomingList, 'division'),
-    },
-    {
-      type: FilterType.SEARCH,
-      id: 'premisesType',
-      title: 'Premises Type',
-      values: getFilterArrayOfListForKey(upcomingList, 'premisesType'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'sourceReduction',
-      title: 'Source Reduction',
-      values: getFilterArrayOfListForKey(upcomingList, 'sourceReduction'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'notification',
-      title: 'Notification',
-      values: getFilterArrayOfListForKey(upcomingList, 'notification'),
-    },
-    {
-      type: FilterType.SELECT,
-      id: 'submittedForAudit',
-      title: 'Submitted For Audit',
-      values: getFilterArrayOfListForKey(upcomingList, 'submittedForAudit'),
-    },
-  ];
+  const filterData = useMemo(
+    () => [
+      {
+        type: FilterType.SELECT,
+        id: 'regionOffice',
+        title: 'RO',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'division',
+        title: 'Division',
+      },
+      {
+        type: FilterType.SEARCH,
+        id: 'premisesType',
+        title: 'Premises Type',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'sourceReduction',
+        title: 'Source Reduction',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'notification',
+        title: 'Notification',
+      },
+      {
+        type: FilterType.SELECT,
+        id: 'submittedForAudit',
+        title: 'Submitted For Audit',
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -256,7 +252,7 @@ const UpcomingFoggingTab = (props) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <SearchBox placeholder="Enter keyword to search" value={searchText} onChangeText={setSearchTextValue} searchTypes={searchData} onChangeSearchType={setSearchType} />
           <DateRangePickerSelect className="navbar-nav filterWrapper ml-auto xs-paddingBottom15" onChange={setDatePickerValue} selectData={dateSelectData} data={datePickerValue} />
-          <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData.filter((item) => item.show !== false)} />
+          <Filter className="navbar-nav filterWrapper xs-paddingBottom15" onChange={setFilterValue} data={filterData.filter((item) => item.show !== false)} original={upcomingList} />
           <Sort className="navbar-nav sortWrapper" data={upcomingColumns} value={upcomingSortValue} desc={upcomingSortValue.desc} onChange={setUpcomingSortValue} />
         </div>
       </div>

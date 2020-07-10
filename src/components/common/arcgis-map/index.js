@@ -48,6 +48,7 @@ class ArcgisMap extends PureComponent {
   }
 
   loadMap = () => {
+    const { selectedLayer } = this.props;
     loadModules(['esri/config', 'esri/core/urlUtils', 'esri/Map', 'esri/views/MapView', 'esri/tasks/support/Query', 'esri/layers/GraphicsLayer', 'esri/layers/FeatureLayer'], {
       css: false,
       url: ARCGIS_HOST_JS,
@@ -80,12 +81,13 @@ class ArcgisMap extends PureComponent {
       const doQuery = () => {
         const selectedOption = MapLOV.find((item) => item.value === optionSelect.value);
 
-        const HeadWork = `${ARCGIS_HOST}/${selectedOption.layer}`;
-        // console.log('ArcgisMap -> doQuery -> HeadWork', HeadWork);
+        const HeadWork = `${ARCGIS_HOST}/${selectedLayer || selectedOption.layer}`;
+        console.log('ArcgisMap -> doQuery -> HeadWork', HeadWork);
         // const graphicLayer = new GraphicsLayer();
         const featureLayer = new FeatureLayer({
           url: HeadWork,
         });
+        featureLayer.opacity = 0.5;
         this.view.map.layers = [featureLayer];
 
         // function displayResults(results) {
