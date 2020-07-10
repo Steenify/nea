@@ -1,0 +1,23 @@
+@import 'styles/var.scss';
+
+.form-group {
+	&--custom {
+		label {
+			span {
+				font-size: em(12px, 15px);
+				display: inline-block;
+				color: $text-white;
+				background-color: $main_color;
+				border-radius: 2px;
+				padding: 3px 8px;
+				margin-left: 5px;
+			}
+		}
+	}
+}
+
+.select_custom:not(.select_multi) {
+	& > div > div[class*='control'] {
+		height: 40px;
+	}
+}

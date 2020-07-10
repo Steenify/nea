@@ -1,0 +1,83 @@
+@import 'styles/var.scss';
+
+.operBtns {
+	display: inline-block;
+
+	& a,
+	span {
+		margin-left: 15px;
+		text-align: left;
+		padding-left: 40px;
+		padding-top: 8px;
+
+		&.linkedIcon {
+			background: url('../../../assets/svg/existing.svg') no-repeat 15px 11px $bg-white;
+			display: block;
+		}
+
+		&.reassignIcon {
+			background: url('../../../assets/svg/reassign.svg') no-repeat 15px 11px $bg-white;
+			display: block;
+		}
+
+		&.closeIcon {
+			background: url('../../../assets/svg/close-operation.svg') no-repeat 15px 11px $bg-white;
+			display: block;
+		}
+
+		@include max-md {
+			margin-left: 0;
+			margin-bottom: 7px;
+		}
+	}
+
+	@include max-md {
+		width: 100%;
+	}
+}
+
+.mapDetailCont {
+	border-top: solid 1px $border-grey;
+	border-bottom: solid 1px $border-grey;
+	-webkit-box-shadow: 0px 6px 19px -8px rgba(0, 0, 0, 0.14);
+	-moz-box-shadow: 0px 6px 19px -8px rgba(0, 0, 0, 0.14);
+	box-shadow: 0px 6px 19px -8px rgba(0, 0, 0, 0.14);
+}
+
+.clusterCont {
+	height: 100%;
+	border-bottom: solid 1px $border-grey;
+	padding: 18px 0 15px 0;
+	margin-right: 30px;
+
+	& .clusterDetails {
+		font-family: $fontBold;
+		padding-bottom: 5px;
+	}
+
+	& .clusterDetails span {
+		color: $text-grey;
+		font-family: $fontReg;
+	}
+}
+
+@include md-to-xl {
+	.cluserWrapper {
+		border-bottom: solid 1px $border-grey;
+		padding: 30px 0;
+	}
+
+	.clusterCont {
+		border-right: solid 1px $border-grey;
+		border-bottom: none;
+		margin-right: 0;
+
+		&.nb {
+			border-right: none;
+		}
+	}
+
+	.clusterPadding {
+		padding: 0 30px;
+	}
+}

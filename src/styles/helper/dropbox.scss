@@ -1,0 +1,144 @@
+@import 'styles/var.scss';
+
+.checkout_dropbox {
+	font-size: $font_size;
+
+	&.is-dragover {
+		background-color: #3f445b;
+	}
+
+	&.ishidden {
+		display: none;
+	}
+
+	&__content {
+		border: 2px dashed #d9e4f2;
+		border-radius: 10px;
+		min-height: 200px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	&__label {
+		display: flex;
+		text-align: center;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+
+		span {
+			margin-top: em(24px, 20px);
+			font-weight: bold;
+			font-size: em(20px);
+			line-height: em(20px);
+			text-align: center;
+			letter-spacing: -0.477778px;
+			color: $text-medium-grey;
+		}
+
+		svg {
+			max-width: 100%;
+			fill: $text-medium-grey;
+		}
+	}
+
+	&__dropzone {
+		max-width: 100%;
+	}
+
+	@include max-sm() {
+		padding: em(20px);
+	}
+}
+
+.upload-drop-zone {
+	&-sm {
+		height: 200px;
+	}
+
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-ms-flex-direction: column;
+	flex-direction: column;
+	//width: 600px;
+	width: 100%;
+	height: 280px;
+	background-color: $bg-light-grey2;
+	border-style: dashed;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	border: 2px dashed $border-grey;
+	border-radius: 10px;
+
+	.form-group {
+		position: relative;
+		width: auto;
+	}
+
+	& .drag-drop-text {
+		color: $text-medium-grey;
+	}
+
+	& input[type='file'] {
+		opacity: 0;
+		width: 70px;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		@include max-ml {
+			left: -36px;
+			width: 170px;
+		}
+	}
+
+	& .browse {
+		display: block;
+		cursor: pointer;
+		color: $text-blue;
+		margin: 0 3px;
+	}
+
+	.plus-icon {
+		width: 24px;
+		height: 24px;
+		display: inline-block;
+		margin-right: 10px;
+	}
+
+	@include max-ml {
+		background-color: transparent;
+		border: 0;
+		width: auto;
+		height: auto;
+		-webkit-box-align: start;
+		-ms-flex-align: start;
+		align-items: flex-start;
+	}
+}
+
+.upload-drop-zone__file {
+	& li {
+		margin: 10px 0;
+		line-height: 24px;
+
+		& .remove-button {
+			content: '';
+			background: url(../../assets/svg/cancel.svg) no-repeat center center;
+			background-size: 20px;
+			height: 24px;
+			width: 30px;
+			display: inline-block;
+			margin: -7px 10px;
+			cursor: pointer;
+		}
+	}
+}

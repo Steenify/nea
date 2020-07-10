@@ -1,0 +1,57 @@
+{
+  "extends": ["react-app", "airbnb"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["src"]
+      }
+    }
+  },
+  "plugins": ["react", "jsx-a11y", "import"],
+  "rules": {
+    "import/prefer-default-export": "off",
+    "radix": "warn",
+    "eqeqeq": "warn",
+    "no-new-func": "warn",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [".js", ".jsx"]
+      }
+    ],
+    "react/no-find-dom-node": "warn",
+    "react/prop-types": [0],
+    "jsx-a11y/label-has-for": [0],
+    "arrow-parens": "off",
+    "object-curly-newline": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "no-nested-ternary": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "implicit-arrow-linebreak": "off",
+    "max-len": "off",
+    "no-shadow": "off",
+    "no-console": "off",
+    "react/jsx-wrap-multilines": "off",
+    "no-underscore-dangle": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/jsx-closing-bracket-location": "off",
+    "no-confusing-arrow ": "off",
+    "jsx-a11y/control-has-associated-label": "off",
+    "operator-linebreak": "off",
+    "camelcase": "off",
+    "react/jsx-curly-newline": "off",
+    "no-restricted-globals": "off",
+    "indent": "off",
+    "global-require": "off"
+  }
+}

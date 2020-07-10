@@ -1,0 +1,56 @@
+@import 'styles/var.scss';
+
+.specimen {
+	font-size: $font_size;
+	position: relative;
+
+	&__row {
+		display: flex;
+		margin-bottom: 10px;
+	}
+
+	&__label {
+		font-weight: bold;
+		width: 100px;
+	}
+
+	&__header {
+		background-color: #0276ff;
+		padding: 15px 20px;
+		font-weight: 700;
+		color: $text-white;
+	}
+
+	&__content {
+		padding: 30px;
+	}
+
+	&__number {
+		display: flex;
+		margin-bottom: 10px;
+
+		.label {
+			width: 220px;
+			font-weight: 700;
+		}
+	}
+
+	&__remark {
+		display: flex;
+		margin-bottom: 20px;
+		margin-top: 20px;
+
+		.label {
+			font-weight: bold;
+			width: 100px;
+		}
+
+		.value {
+			flex: 1;
+		}
+	}
+}
+
+.value {
+	padding-left: 10px;
+}

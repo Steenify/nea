@@ -1,0 +1,216 @@
+@import 'styles/var.scss';
+
+.nav {
+	&__main {
+		font-size: $font_size;
+		position: relative;
+
+		& .leftNavCont {
+			width: 260px;
+			position: fixed;
+			height: 100vh;
+			background-color: $bg-blue;
+			overflow: auto;
+			top: 0;
+			padding-top: 103px;
+			padding-bottom: 50px;
+			@include max-ml {
+				display: none;
+			}
+
+			& .leftNavTitle {
+				color: $text-white;
+				padding: 20px;
+				border-bottom: solid 1px $border-white;
+				font-size: $font_size_l;
+				line-height: 25px;
+				text-transform: uppercase;
+			}
+
+			.leftNav {
+				margin-top: 20px;
+
+				& li {
+					color: $text-white;
+					font-size: $font_size;
+					margin-bottom: 1px;
+
+					&.dashboard {
+						background: url(../../../assets/svg/dahboard.svg) no-repeat 20px 13px;
+					}
+
+					&.cPool {
+						background: url(../../../assets/svg/common-pool.svg) no-repeat 20px 13px;
+					}
+
+					&.workspace {
+						background: url(../../../assets/svg/workspace.svg) no-repeat 20px 13px;
+					}
+
+					&.qrySample {
+						background: url(../../../assets/svg/query-sample.svg) no-repeat 20px 13px;
+					}
+
+					&.depositSendSample {
+						background: url(../../../assets/svg/deposit-send-sample.svg) no-repeat 20px 13px;
+					}
+
+					&.operationAreaManagement {
+						background: url(../../../assets/svg/operation-area-management.svg) no-repeat 20px 13px;
+					}
+
+					&.gravitrapAudit {
+						background: url(../../../assets/svg/gravitrap-audit.svg) no-repeat 20px 13px;
+					}
+
+					&.rodentAudit {
+						background: url(../../../assets/svg/rodent-audit.svg) no-repeat 20px 13px;
+					}
+
+					&.rodentControlUnit {
+						background: url(../../../assets/svg/rodent-control-unit.svg) no-repeat 20px 13px;
+					}
+
+					&.epiInvestigation {
+						background: url(../../../assets/svg/EIM.svg) no-repeat 20px 13px;
+					}
+
+					&.inspMgmt {
+						background: url(../../../assets/svg/inspection-management.svg) no-repeat 20px 13px;
+					}
+
+					&.foggingAudit {
+						background: url(../../../assets/svg/foggint-audit.svg) no-repeat 20px 13px;
+					}
+
+					&.rpt {
+						background: url(../../../assets/svg/report.svg) no-repeat 20px 13px;
+					}
+
+					&.fileUpload {
+						background: url(../../../assets/svg/file-upload.svg) no-repeat 20px 13px;
+					}
+
+					&.fileDownload {
+						background: url(../../../assets/svg/file-download.svg) no-repeat 20px 13px;
+					}
+
+					&.admin {
+						background: url(../../../assets/svg/ic-admin.svg) no-repeat 20px 13px;
+					}
+
+					&.active,
+					&:hover {
+						background-color: $bg-green;
+
+						& a,
+						span {
+							// color: #006fa0;
+							color: white;
+						}
+					}
+
+					& a,
+					span {
+						display: block;
+						color: $text-white;
+						padding: 11px 45px 9px 55px;
+						font-family: $fontBold;
+
+						&.downArrow {
+							background: url(../../../assets/svg/navArrow-down.svg) no-repeat;
+							background-position: right 15px top 16px;
+						}
+
+						&.upArrow {
+							background: url(../../../assets/svg/navArrow-up.svg) no-repeat;
+							background-position: right 15px top 16px;
+						}
+					}
+				}
+			}
+
+			.subNavCont {
+				background-color: $bg-bondi-blue;
+			}
+
+			.subNav {
+				& li a,
+				li span {
+					font-size: $font_size_sm;
+					font-family: $fontReg;
+					color: $text-white;
+					padding: 11px 9px 9px 55px;
+				}
+			}
+		}
+
+		.menuWrapper {
+			position: fixed;
+			top: 92px;
+			width: 100%;
+			z-index: 99;
+			width: 94%;
+			left: 3%;
+
+			& .iMenu {
+				background-color: $bg-blue2;
+				color: $text-white;
+				padding: 10px 0;
+				-webkit-box-shadow: 0px 6px 11px 0px rgba(153, 153, 153, 1);
+				-moz-box-shadow: 0px 6px 11px 0px rgba(153, 153, 153, 1);
+				box-shadow: 0px 6px 11px 0px rgba(153, 153, 153, 1);
+
+				& .iNavTitle {
+					border-bottom: solid 1px $border-white;
+					padding: 15px 20px;
+					font-size: $font_size_l;
+				}
+
+				& ul li {
+					padding: 15px 20px;
+					font-size: $font_size;
+
+					& a,
+					span {
+						color: $text-white;
+					}
+				}
+			}
+		}
+	}
+}
+
+.ipadNavCont {
+	padding-top: 10px;
+
+	.ipadNav {
+		position: relative;
+		top: 8px;
+
+		span {
+			display: block;
+			width: 30px;
+			height: 3px;
+			margin-bottom: 4px;
+			background-color: $bg-blue2;
+			transition: all 0.3s;
+		}
+
+		&.on {
+			span {
+				&:first-child {
+					transform: rotate(45deg) translate(5px, 5px);
+				}
+
+				&:nth-child(2) {
+					background-color: transparent;
+				}
+
+				&:last-child {
+					transform: rotate(-45deg) translate(5px, -5px);
+				}
+			}
+		}
+	}
+}

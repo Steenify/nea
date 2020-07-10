@@ -1,0 +1,43 @@
+@import 'styles/var.scss';
+
+.pagination {
+	&__main {
+		font-size: $font_size;
+		position: relative;
+		margin-top: 16px;
+
+		.paginationCont {
+			text-align: center;
+			margin-bottom: 50px;
+		}
+
+		.paginationCont ul li {
+			display: inline-block;
+			margin: 0 10px;
+			font-family: $fontBold;
+		}
+
+		.paginationCont ul li a {
+			color: $text-medium-grey;
+		}
+
+		.paginationCont ul li.active a {
+			color: $text-bondi-blue;
+		}
+
+		.paginationCont ul li:first-child {
+			padding-right: 2px;
+			color: $text-bondi-blue;
+		}
+
+		.paginationCont ul li:last-child {
+			padding-left: 2px;
+			color: $text-bondi-blue;
+		}
+
+		.paginationCont ul li:first-child a,
+		.paginationCont ul li:last-child a {
+			color: $text-bondi-blue;
+		}
+	}
+}

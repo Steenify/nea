@@ -1,0 +1,126 @@
+// size
+$fullWidth: 100%;
+
+// font
+$font: 'LATORegular';
+$title: 'LATORegular';
+
+// base color
+$nocolor: transparent;
+$white: #ffffff;
+$black: #000000;
+
+// web color
+$main_color: #0ba5d3;
+$second_color: #4badf3;
+$text_color: #000000;
+$title_color: #333333;
+$border_color: #e9f3f5;
+$border_color_1: #c9c9c9;
+$place_holder: #494949;
+$web_bg: #fafafa;
+$modal_border: #eeeeee;
+
+/* FONT FAMILY
+-------------------------------------------------- */
+$fontReg: 'LATORegular';
+$fontBold: 'LATOBold';
+$fontBoldItalic: 'DINBoldItalic';
+$fontItalic: 'LATOItalic';
+
+/* FONT SIZES
+-------------------------------------------------- */
+$font_size_xxs: 11px;
+$font_size_xs: 12px;
+$font_size_sm: 14px;
+$font_size: 16px;
+$font_size_l: 18px;
+$font_size_xl: 20px;
+$font_size_xxl: 22px;
+$font_size_xxxl: 36px;
+
+/* TEXT COLORS
+-------------------------------------------------- */
+$text-black: #333;
+$text-white: #ffffff;
+$text-light-grey: #dcdcdc;
+$text-light-grey2: #f4f4f4;
+$text-grey: #757575;
+$text-medium-grey: #909090;
+// $text-blue: #0077ff;
+$text-blue: #1c8ec6;
+$text-blue2: #006fa0;
+$text-bondi-blue: #1c8ec6;
+$text-dark-blue: #344152;
+$text-green: #7ac046;
+$text-orange: #ffa60e;
+$text-red: #d6004e;
+$text-dark-red: #d6004e;
+$text-magenta: #f7149f;
+
+/* BACKGROUND COLORS
+-------------------------------------------------- */
+$bg-black: #333333;
+$bg-white: #ffffff;
+$bg-green: #74b74a;
+$bg-green2: #bed73b;
+$bg-light-blue: #e3f3ff;
+$bg-blue: #1c8ec6;
+$bg-dark-blue: #006fa0;
+$bg-blue2: #4a5ed1;
+$bg-bondi-blue: #1c8ec6;
+$bg-bondi-blue2: #8dc6e2;
+$bg-bondi-blue3: #77bbdd;
+$bg-yellow: #ffef36;
+$bg-medium-grey: #757575;
+$bg-light-grey1: #dcdcdc;
+$bg-light-grey2: #f4f4f4;
+$bg-psa-orange: #f58220;
+
+$bg-content: #f7f7f7;
+
+$bg-skyBlue: #f0f5fb;
+$bg-skyBlue2: #e5f3fe;
+$bg-light-green: #73b74a;
+// $bg-light-green: rgba(115, 183, 74, 0.2);
+$bg-light-green2: #ddeece;
+$bg-light-grey3: #f3f4f5;
+$bg-light-orange: #ffd71e;
+$bg-orange: #ffa60e;
+$bg-light-yellow: #fffac3;
+// $bg-light-yellow: rgba(255, 239, 54, 0.15);
+$bg-pink: #d6004e;
+// $bg-light-pink: rgba(214, 0, 78, 0.15);
+$bg-light-pink: #fae6ed;
+
+/* BORDER COLORS
+-------------------------------------------------- */
+$border-black: #333333;
+$border-white: #ffffff;
+$border-light-grey: #f5f5f5;
+$border-light-grey2: #c2c5ca;
+$border-grey: #dcdcdc;
+$border-medium-grey: #757575;
+// $border-blue: #0077ff;
+$border-blue: #006fa0;
+$border-bondi-blue: #1c8ec6;
+$border-green: #7ac046;
+$border-orange: #ffa60e;
+$border-dark-red: #d6004e;
+$border-magenta: #f7149f;
+
+/* SCREEN SIZES
+-------------------------------------------------- */
+$screen-xs: 400px;
+$screen-sm: 576px;
+$screen-md: 767px;
+$screen-lg: 991px;
+$screen-ml: 1024px;
+$screen-xl: 1200px;
+$screen-xxl: 1350px;
+
+/* HEIGHTS
+-------------------------------------------------- */
+$input-height: 40px;
+
+@import './mixin.scss';

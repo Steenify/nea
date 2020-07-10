@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": "src",
+    "module": "commonJS",
+    "target": "es6",
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": false,
+    "paths": {
+      "assets": ["assets"],
+      "assets/*": ["assets/*"],
+      "components": ["components"],
+      "components/*": ["components/*"],
+      "constants": ["constants"],
+      "constants/*": ["constants/*"],
+      "modules": ["modules"],
+      "modules/*": ["modules/*"],
+      "pages": ["pages"],
+      "pages/*": ["pages/*"],
+      "routes": ["routes"],
+      "routes/*": ["routes/*"],
+      "services": ["services"],
+      "services/*": ["services/*"],
+      "store": ["store"],
+      "store/*": ["store/*"],
+      "styles": ["styles"],
+      "styles/*": ["styles/*"],
+      "utils": ["utils"],
+      "utils/*": ["utils/*"],
+      "vendor": ["vendor"],
+      "vendor/*": ["vendor/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,39 @@
+/* HEADINGS
+-------------------------------------------------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0;
+	padding: 0;
+}
+
+h1 {
+	font-size: 18px;
+	line-height: 20px;
+}
+
+h2, h3 {
+	font-size: 16px;
+}
+
+@media (max-width: 767px) {
+	h1 {
+		word-break: break-word;
+	}
+}
+
+.bold-text {
+	font-family: $fontBold;
+	font-size: $font_size;
+}
+.small-grey-text {
+	font-family: $fontReg;
+	font-size: $font_size_sm;
+	margin-right: 5px;
+	color: $text-medium-grey;
+	font-weight: normal;
+	line-height: 18px;
+}

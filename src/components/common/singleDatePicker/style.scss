@@ -1,0 +1,18 @@
+.SingleDatePicker {
+	.SingleDatePickerInput {
+		display: flex;
+		align-items: center;
+		padding-top: 0;
+	}
+}
+
+.SingleDatePickerContainer {
+	// position: relative;
+	width: 100%;
+	min-height: 40px;
+	height: 100%;
+
+	.SingleDatePicker {
+		position: absolute;
+	}
+}

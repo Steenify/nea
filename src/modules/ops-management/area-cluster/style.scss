@@ -1,0 +1,43 @@
+@import 'styles/var.scss';
+
+.activeOperSearch {
+	border-bottom: 1px solid $border-grey;
+}
+
+.activeOperations {
+	border-bottom: 1px solid $border-grey;
+
+	& .operationCard {
+		border: solid 1px $border-grey;
+		border-radius: 10px;
+		-webkit-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+		-moz-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+		box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+	}
+
+	& .operationsHeader {
+		background-color: $bg-green;
+		border-top-left-radius: 10px;
+		border-top-right-radius: 10px;
+		color: $text-white;
+		padding: 10px 30px;
+	}
+
+	& .opertionDesc {
+		padding: 10px 30px;
+
+		& .operDetails {
+			border-bottom: dotted 1px $border-bondi-blue;
+			padding: 5px 0;
+
+			& span {
+				color: $text-grey;
+				padding-right: 15px;
+			}
+
+			&:last-child {
+				border-bottom: none;
+			}
+		}
+	}
+}

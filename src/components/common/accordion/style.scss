@@ -1,0 +1,228 @@
+@import 'styles/var.scss';
+
+.accordion-header {
+	border-bottom: none;
+	position: relative;
+	padding: 5px 30px;
+	min-height: 45px;
+	font-size: 16px;
+	background-color: $bg-light-grey2;
+
+	&.orange {
+		background-color: $bg-light-yellow;
+
+		& .badge {
+			color: $text-black;
+		}
+	}
+	&.yellow {
+		background-color: $bg-light-yellow;
+	}
+
+	&.green {
+		background-color: $bg-light-green2;
+	}
+
+	&.grey {
+		background-color: $bg-light-grey2;
+	}
+
+	&.purple {
+		background-color: $bg-light-grey2;
+	}
+
+	&.pink {
+		background-color: $bg-light-grey2;
+	}
+
+	@include max-md {
+		padding: 20px;
+	}
+}
+
+.accordion-header:first-child {
+	border: 0;
+	border-radius: 0;
+}
+
+.accordion {
+	margin-bottom: 0;
+	overflow: hidden;
+	position: relative;
+	// cursor: pointer;
+	border-bottom: solid 1px $border-grey;
+
+	&.green {
+		.card-header {
+			background-color: $bg-light-green2;
+		}
+	}
+
+	&.grey {
+		.card-header {
+			background-color: $bg-light-grey2;
+		}
+	}
+
+	&.orange {
+		.card-header {
+			background-color: $bg-light-yellow;
+		}
+
+		.card-header .badge {
+			color: $text-black;
+		}
+
+		@include max-ml {
+			padding: 1rem 2rem;
+		}
+	}
+
+	.section {
+		padding: 30px;
+		border-bottom: none;
+
+		@include max-ml {
+			padding: 1.5rem 2rem;
+		}
+	}
+
+	.section.finding-header {
+		background-color: $bg-light-grey2;
+		padding: 15px 30px;
+	}
+
+	.section .details-info {
+		// margin-bottom: 30px;
+	}
+
+	.section .details-info:last-child {
+		// margin-bottom: 0;
+	}
+
+	.btn-link {
+		color: $text-black;
+		height: 38px;
+		width: 100%;
+		text-align: left;
+		display: -webkit-box;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		position: relative;
+		padding: 0 10px;
+	}
+
+	.btn-link:hover,
+	.btn-link:visited,
+	.btn-link:focus {
+		text-decoration: none;
+	}
+
+	.nea-btn-group {
+		display: -webkit-box;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-pack: end;
+		-ms-flex-pack: end;
+		justify-content: flex-end;
+	}
+
+	// form button[type=submit] { position: absolute; bottom: 0; left: 0; }
+	.label-group {
+		margin-bottom: 30px;
+	}
+
+	.collapse {
+		.btn {
+			&.add-findings {
+				position: absolute;
+				bottom: -90px;
+				left: 0;
+				@include max-ml {
+					bottom: -5.5rem;
+				}
+			}
+		}
+	}
+
+	.collapsing {
+		background-color: $bg-white;
+	}
+	.collapsing {
+		background-color: $bg-white;
+	}
+	.toggleArrow {
+		&:after {
+			content: '';
+			background: url(../../../assets/svg/dropdown-arrow-up.svg) no-repeat;
+			display: block;
+			position: absolute;
+			top: 50%;
+			right: 3%;
+			width: 20px;
+			height: 20px;
+			background-size: 20px;
+			-webkit-transform: translateY(-50%);
+			transform: translateY(-50%);
+			transform: translateY(-50%);
+			-webkit-transition: -webkit-transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s;
+			transition: -webkit-transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s;
+			transition: transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s;
+			transition: transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s,
+				-webkit-transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s;
+			transition: transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s,
+				-webkit-transform cubic-bezier(0.25, 0.8, 0.25, 1) 0.5s;
+		}
+	}
+}
+
+.accordion-header {
+	border-bottom: none;
+	position: relative;
+	padding: 5px 30px;
+	font-size: 16px;
+	background-color: $bg-light-grey2;
+
+	&.orange {
+		background-color: $bg-light-yellow;
+
+		& .badge {
+			color: $text-black;
+		}
+	}
+	&.yellow {
+		background-color: $bg-light-yellow;
+	}
+
+	&.green {
+		background-color: $bg-light-green2;
+	}
+
+	&.grey {
+		background-color: $bg-light-grey2;
+	}
+
+	&.purple {
+		background-color: $bg-light-grey2;
+	}
+
+	&.pink {
+		background-color: $bg-light-grey2;
+	}
+
+	& > svg {
+		position: absolute;
+		top: 12px;
+		right: 30px;
+	}
+
+	padding-right: 30px;
+}
+
+.accordion-header:first-child {
+	border: 0;
+	border-radius: 0;
+}

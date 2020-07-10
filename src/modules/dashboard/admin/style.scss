@@ -1,0 +1,39 @@
+@import 'styles/var.scss';
+
+.dashboard_status {
+	&__item {
+		background: $main_color;
+		padding: 10px;
+		border-radius: 10px;
+		margin-bottom: 15px;
+	}
+	&__top {
+		display: flex;
+		align-items: center;
+	}
+
+	&__icon {
+		padding-left: 15px;
+		width: 50px;
+	}
+
+	&__info {
+		width: calc(100% - 50px);
+		padding-left: 30px;
+	}
+
+	&__title {
+		font-size: 20px;
+		font-weight: bold;
+	}
+	&__number {
+		font-size: 40px;
+		font-weight: bold;
+	}
+}
+
+.dashboard_table {
+	.tblCompo th {
+		padding: 25px 20px;
+	}
+}

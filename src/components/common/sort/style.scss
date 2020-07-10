@@ -1,0 +1,21 @@
+@import 'styles/var.scss';
+
+.filter {
+	&__toggle {
+		font-size: $font_size;
+
+		&.min-width-300 {
+			.dropdown-menu {
+				min-width: 400px;
+			}
+		}
+
+		@include max-sm() {
+			&.min-width-300 {
+				.dropdown-menu {
+					min-width: 300px;
+				}
+			}
+		}
+	}
+}

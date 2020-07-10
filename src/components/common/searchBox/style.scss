@@ -1,0 +1,95 @@
+@import 'styles/var.scss';
+
+.searchFilter {
+	width: 100%;
+
+	& li {
+		width: 100%;
+	}
+
+	& .searchForm {
+		display: flex;
+
+		& .searchTypeList {
+			display: flex;
+			& .form-control {
+				height: $input-height;
+			}
+		}
+
+		& .searchWrapper {
+			& .searchTextfield {
+				height: $input-height;
+			}
+		}
+
+		&.hasSelect {
+			& .searchTypeList {
+				display: flex;
+				// margin-right: 8px;
+
+				& .form-control {
+					height: $input-height;
+
+					border-top-right-radius: 0;
+					border-bottom-right-radius: 0;
+				}
+			}
+
+			& .searchWrapper {
+				& .searchTextfield {
+					height: $input-height;
+					border-top-left-radius: 0;
+					border-bottom-left-radius: 0;
+					border-left-width: 0;
+				}
+			}
+		}
+
+		@include max-md {
+			display: block;
+
+			.wf-250 {
+				width: 100% !important;
+			}
+		}
+	}
+
+	& .searchWrapper {
+		position: relative;
+		// width: 100%;
+		display: flex;
+		flex: 1;
+
+		& .searchTextfield {
+			width: 100%;
+			border-radius: 10px;
+			border: solid 1px $border-grey;
+			padding: 10px 40px 10px 10px;
+			font-size: $font_size;
+		}
+
+		& .searchIcon {
+			position: absolute;
+			right: 10px;
+			top: 8px;
+			width: 20px;
+			z-index: 9;
+			cursor: pointer;
+		}
+
+		@include max-lg {
+			width: 100%;
+		}
+
+		&.mainSearch {
+			@include max-sm {
+				width: 100%;
+			}
+
+			@include md-to-ml {
+				width: 350px;
+			}
+		}
+	}
+}

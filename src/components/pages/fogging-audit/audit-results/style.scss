@@ -1,0 +1,41 @@
+.audit__results {
+	&__section {
+		margin: 18px 0;
+	}
+
+	&__license__badge__yes {
+		padding: 2px 0px;
+		max-width: 160px;
+		border-radius: 30px;
+		color: white;
+		background: #33cc00;
+	}
+
+	&__license__badge__no {
+		padding: 2px 0px;
+		max-width: 160px;
+		border-radius: 30px;
+		color: white;
+		background: #ff0000;
+	}
+
+	&__image__container {
+		display: flex;
+		width: 100%;
+		overflow: auto;
+
+		img:first-child {
+			margin-left: 0;
+			margin-right: 0.5rem;
+		}
+
+		img:last-child {
+			margin-left: 0.5rem;
+			margin-right: 0;
+		}
+
+		img {
+			margin: 0 0.5rem;
+		}
+	}
+}

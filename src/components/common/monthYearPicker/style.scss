@@ -1,0 +1,27 @@
+@import 'styles/var.scss';
+
+$form_label_color: #212121;
+
+label {
+	color: $form_label_color;
+	display: block;
+	margin-bottom: 4px;
+}
+b {
+	color: $form_label_color;
+	display: block;
+	margin-bottom: 4px;
+}
+
+input {
+	width: 100%;
+	border-radius: 10px;
+	border: solid 1px $border-grey;
+	padding: 10px;
+	font-size: $font_size;
+	color: #1c8ec6;
+}
+
+.react-datepicker-popper {
+	z-index: 10;
+}

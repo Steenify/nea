@@ -1,0 +1,170 @@
+.ReactTable {
+	border: none;
+
+	::-webkit-scrollbar {
+		width: 15px;
+		height: 15px;
+	}
+
+	::-webkit-scrollbar-track {
+		// -webkit-border-radius: 10px;
+		// border-radius: 10px;
+	}
+
+	::-webkit-scrollbar-thumb {
+		// -webkit-border-radius: 10px;
+		// border-radius: 10px;
+		background: #909090;
+	}
+
+	::-webkit-scrollbar-thumb:window-inactive {
+		background: #909090;
+	}
+}
+
+.react__table {
+	position: relative;
+	// border-radius: 10px 10px 0px 0px;
+	border-radius: 10px;
+
+	.rt-table {
+		// border-radius: 10px 10px 0px 0px;
+		border-radius: 10px;
+	}
+
+	.rt-noData {
+		margin-top: 45px;
+	}
+
+	&.normal-header-hidden {
+		.-header {
+			display: none;
+		}
+	}
+
+	&.header-white {
+		.rt-thead {
+			color: initial;
+
+			.rt-th {
+				background: white;
+			}
+		}
+	}
+
+	.rt-thead {
+		// border-bottom: solid 1px #dbdbdb;
+		// box-shadow: 0px 10px 8px -9px #dbdbdb, 0px -9px 8px -10px #dbdbdb;
+		// background-color: #fff;
+		border-radius: 10px 10px 0px 0px;
+
+		color: white;
+
+		.rt-th {
+			padding: 9px 20px;
+			min-height: 70px;
+			text-align: left;
+			font-weight: bold;
+			border-right-width: 0;
+			white-space: normal;
+			align-items: center;
+			display: flex;
+			background: $bg-bondi-blue;
+		}
+
+		.th-center {
+			text-align: center;
+		}
+
+		.rt-tr {
+			border-top: solid 1px $border-grey;
+			border-bottom: solid 1px $border-grey;
+			//box-shadow: 0px 10px 8px -9px #dbdbdb, 0px -9px 8px -10px #dbdbdb;
+			// background-color: $bg-white;
+		}
+	}
+
+	.rt-tbody {
+		.rt-td {
+			padding: 15px 20px;
+			border-right: 0;
+			display: flex;
+			align-items: center;
+			white-space: normal;
+		}
+
+		.rt-overflow-visible {
+			overflow: visible;
+		}
+
+		.rt-tr-group {
+			border-bottom: solid 0.1rem $border-grey;
+		}
+
+		// .rt-tr.-even {
+		// 	background-color: #fff;
+		// }
+		.rt-tr {
+			min-height: 60px;
+
+			// &.-even {
+			// 	background-color: #fff;
+			// }
+			& {
+				background-color: $bg-white;
+			}
+
+			&.bg-scanned {
+				background-color: white !important;
+
+				.rt-td {
+					background-color: rgba(242, 242, 242, 1) !important;
+				}
+			}
+
+			&.bg-success {
+				background-color: white !important;
+
+				.rt-td {
+					background-color: $bg-light-green !important;
+				}
+			}
+
+			&.bg-danger {
+				background-color: white !important;
+
+				.rt-td {
+					background-color: $bg-light-pink !important;
+				}
+			}
+
+			&.bg-warning {
+				background-color: white !important;
+
+				.rt-td {
+					background-color: $bg-light-yellow !important;
+				}
+			}
+
+			&.bg-notification-seen {
+				background-color: white !important;
+
+				.rt-td {
+					background-color: $bg-light-blue !important;
+				}
+			}
+
+			&.selected {
+				border: 3px solid rgba(121, 121, 121, 1);
+			}
+
+			&.bottom-divider {
+				border-bottom: 3px solid red;
+			}
+		}
+	}
+
+	.-loading-inner {
+		font-weight: bold;
+	}
+}

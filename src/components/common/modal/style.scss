@@ -1,0 +1,167 @@
+@import 'styles/var.scss';
+
+.modal-backdrop.show {
+	opacity: 0.3;
+}
+
+.modal {
+	.modal-dialog {
+		min-width: 420px;
+		max-width: 1050px;
+
+		&.max_width_630 {
+			max-width: 630px;
+		}
+
+		&.modal-sm {
+			max-width: 300px;
+		}
+
+		@include max-lg {
+			// width: -webkit-min-content;
+			// width: -moz-min-content;
+			// width: min-content;
+			max-width: 500px;
+		}
+
+		@include max-md {
+			margin: auto;
+			min-width: 320px;
+			max-width: 320px;
+		}
+
+		// &.modal-lg {
+		// 	min-width: 800px;
+		// 	@include max-md {
+		// 		margin: auto;
+		// 		min-width: 320px;
+		// 		max-width: 320px;
+		// 	}
+		// }
+	}
+
+	.modal-header,
+	.modal-body,
+	.modal-content {
+		border: none;
+		padding: 0;
+	}
+
+	.modal-content {
+		border: 1px solid $border-grey;
+		-webkit-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+		-moz-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+		box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.14);
+	}
+
+	.modal-no-border {
+		.modal-content {
+			border: none;
+			-webkit-box-shadow: none;
+			-moz-box-shadow: none;
+			box-shadow: none;
+		}
+	}
+
+	.modal-body {
+		@include max-ml {
+			padding: 0;
+		}
+	}
+
+	.modal-content {
+		// @include max-ml {
+		//     padding: 1rem;
+		// }
+
+		.system-modal {
+			.modal-footer {
+				border: none;
+				padding: 0;
+			}
+		}
+
+		.action-modal {
+			.modal-body {
+				padding: 1.5rem;
+
+				.is-reject-form {
+					width: 991px;
+
+					@include max-ml {
+						width: 100%;
+					}
+				}
+
+				.is-preview-upload {
+					width: 420px;
+
+					@include max-ml {
+						width: 100%;
+					}
+				}
+
+				.slick-slider {
+					padding: 0 30px;
+				}
+
+				.slick-slide {
+					img {
+						height: 287px;
+						margin-bottom: 10px;
+
+						@include max-md {
+							height: 145px;
+						}
+					}
+				}
+			}
+
+			// .modal-header {
+			// 	display: none;
+			// }
+
+			.modal-footer {
+				padding: 2rem;
+				border-top: 1px solid $border-grey;
+			}
+		}
+
+		.modal-reason {
+			border: 1px solid $border-grey;
+			border-radius: 10px;
+			resize: none;
+			padding: 10px;
+			background-color: $bg-white;
+		}
+
+		.info-modal {
+			// width: 630px;
+			// margin: auto;
+			.legendValue {
+				width: 50%;
+				padding: 0 1rem;
+				display: inline-block;
+
+				small {
+					font-size: 14px;
+				}
+
+				&.w-30 {
+					width: 30%;
+				}
+			}
+
+			.list-group-item {
+				border: solid 1px $border-grey;
+				padding: 15px 20px;
+
+				& .remarks {
+					margin-left: 30%;
+					font-size: 14px;
+					display: block;
+				}
+			}
+		}
+	}
+}

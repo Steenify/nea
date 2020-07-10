@@ -1,0 +1,26 @@
+@import 'styles/var.scss';
+
+.trapinfo {
+	font-size: $font_size;
+	position: relative;
+
+	&__content {
+		padding: 40px;
+	}
+
+	&__row {
+		display: flex;
+		margin-bottom: 30px;
+	}
+
+	&__label {
+		font-weight: bold;
+		width: 200px;
+	}
+
+	&__label1 {
+		font-weight: bold;
+		width: 230px;
+		margin-right: 20px;
+	}
+}

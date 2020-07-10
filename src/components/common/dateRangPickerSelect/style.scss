@@ -1,0 +1,69 @@
+@import 'styles/var.scss';
+
+.datepicker__toggle {
+	& .DayPicker__hidden {
+		visibility: visible;
+	}
+
+	& .showList {
+		display: inline-block;
+	}
+
+	& .datepicker-controller {
+		width: 619px;
+		height: 350px;
+		margin-top: 8px;
+		margin-bottom: 8px;
+
+		&.single-datepicker-controller {
+			height: 400px;
+		}
+	}
+
+	@include max-md() {
+		.datepicker-controller {
+			width: 100%;
+			height: auto;
+			.DayPickerNavigation_button__default {
+				height: 100%;
+				width: 50%;
+			}
+		}
+	}
+}
+
+.datepicker-controller {
+	.daterangepicker {
+		font-size: 1rem !important;
+		top: auto !important;
+		left: 20px !important;
+		right: 20px !important;
+		&.show-calendar {
+			display: block !important;
+			.drp-calendar {
+				display: inline-block !important;
+				width: 50%;
+				max-width: 100% !important;
+			}
+
+			.calendar-table {
+				td {
+					height: 40px;
+					&.start-date {
+						border-radius: 40px 0 0 40px;
+					}
+					&.end-date {
+						border-radius: 0 40px 40px 0;
+					}
+					&.end-date.start-date {
+						border-radius: 40px 40px 40px 40px;
+					}
+				}
+			}
+		}
+
+		.drp-buttons {
+			display: none !important;
+		}
+	}
+}

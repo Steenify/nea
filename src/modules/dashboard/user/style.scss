@@ -1,0 +1,95 @@
+@import 'styles/var.scss';
+
+.dCont {
+	height: 100%;
+	background-color: $bg-white;
+	border-radius: 10px;
+	border: solid 1px $border-grey;
+
+	&.ltGrey {
+		background-color: $bg-light-grey2;
+	}
+
+	& .secHeader {
+		color: $text-white;
+		padding: 10px 30px;
+	}
+
+	& .dCardDetails {
+		padding: 30px;
+	}
+
+	& .regionBtns {
+		width: 100%;
+		border-radius: 10px;
+
+		& .btn.btn-secondary {
+			min-width: auto;
+			background-color: $bg-white;
+			color: $text-grey;
+			border: solid 1px $border-grey;
+
+			&:hover,
+			&.active {
+				background-color: $bg-medium-grey;
+				color: $text-white;
+			}
+		}
+	}
+
+	& .samplesDetails li {
+		display: inline-block;
+		margin-right: 10px;
+		width: 18.2%;
+
+		&:last-child {
+			margin-right: 0;
+		}
+
+		@include lg-to-xxl {
+			width: 30%;
+			margin-bottom: 20px;
+		}
+	}
+
+	& .redArrowIcon,
+	.greenArrowIcon {
+		width: 20px;
+		height: 20px;
+		display: inline-block;
+	}
+
+	& .redArrowIcon {
+		background: url(../../../assets/svg/red-arrow.svg) no-repeat 0 5px;
+	}
+
+	& .greenArrowIcon {
+		background: url(../../../assets/svg/green-arrow.svg) no-repeat 0 5px;
+	}
+
+	& .tabCont {
+		background-color: $bg-light-grey2;
+		padding: 30px;
+	}
+
+	.samplesDetails__tab {
+		position: relative;
+
+		&.active {
+			&:after {
+				bottom: -30px;
+				left: 50%;
+				border: solid transparent;
+				content: ' ';
+				height: 0;
+				width: 0;
+				position: absolute;
+				pointer-events: none;
+				border-color: rgba(136, 183, 213, 0);
+				border-bottom-color: #f4f4f4;
+				border-width: 30px;
+				margin-left: -35px;
+			}
+		}
+	}
+}
